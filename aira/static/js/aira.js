@@ -36,49 +36,26 @@ aira.setupDateTimePickerForIrrigationLog = function () {
 aira.mapModule = (function namespace() {
     'use strict';
 
-    var selectTimestampView = function () {
-        // Select between daily or monthly View
-        var timestamp = $('#timestampSelectorBtn').attr('toggle-timestamp');
-        if (timestamp === 'daily') {
-            $('#meteo-' + timestamp).show();
-            $('#timestampSelectorBtn').attr('raster-timestamp', 'daily');
-            $('#mapLegend').html(aira.transToggleTimestampMap.mapLegendDaily);
-            calendarSelector('daily');
-            selectRasterMap();
-            nextTimeStampConfig('monthly');
-        }
-        if (timestamp === 'monthly') {
-            $('#meteo-' + timestamp).show();
-            $('#timestampSelectorBtn').attr('raster-timestamp', 'monthly');
-            $('#mapLegend').html(aira.transToggleTimestampMap.mapLegendMonthly);
-            calendarSelector('monthly');
-            selectRasterMap();
-            nextTimeStampConfig('daily');
-        }
+    var capitalize = function (string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
     };
 
-    var nextTimeStampConfig = function nextTimeStampConfig(timestamp) {
-        // Prepare toogle btn for the next toogle.
-        // For instance, if current selection is daily
-        // then next toogle is monthly.
-        // Need to fix translation issue.
-        $('#timestampSelectorBtn').attr('toggle-timestamp', timestamp);
-        if (timestamp === 'daily') {
-            $('#timestampSelectorBtn').html(aira.transToggleTimestampMap.toogleDaily);
-        }
-        if (timestamp === 'monthly') {
-            $('#timestampSelectorBtn').html(aira.transToggleTimestampMap.toogleMonthly);
-        }
-        $('#meteo-' + timestamp).hide();
+    var toggleBetweenMonthlyAndDaily = function () {
+        var timestepToggle = document.getElementById('timestep-toggle');
+        var oldTimestep = timestepToggle.getAttribute("current-timestep");
+        var newTimestep = oldTimestep === 'daily' ? 'monthly' : 'daily';
+        $('#raster-selector-' + newTimestep).show();
+        $('#raster-selector-' + oldTimestep).hide();
+        timestepToggle.setAttribute("current-timestep", newTimestep);
+        timestepToggle.textContent = aira.timestepMessages["switchTo" + capitalize(oldTimestep)];
+        setupDateTimePicker(newTimestep);
+        setupRaster();
     };
 
-    var calendarSelector = function (timestamp) {
-        // Config calendar based of user selection.
-        // Options are: daily or monthly
+    var setupDateTimePicker = function (timestep) {
         $('#calendar').datetimepicker('remove');
-        switch (timestamp) {
+        switch (timestep) {
             case 'daily':
-                $('#calendar').datetimepicker('remove');
                 $('#calendar').datetimepicker({
                   format: 'yyyy-mm-dd',
                   startDate: '2015-01-01',
@@ -105,15 +82,13 @@ aira.mapModule = (function namespace() {
         }
     };
 
-    var selectRasterMap = function () {
-        // Config map creation
-        // Service url are defined here.
-        var timestamp = $('#timestampSelectorBtn').attr('raster-timestamp');
+    var setupRaster = function () {
+        var timestep = $('#timestep-toggle').attr('current-timestep');
         var date = $('#datetimepickerMirrorField').val();
         var meteoVar;
         var url;
         var dateFormat;
-        switch (timestamp) {
+        switch (timestep) {
             case 'daily':
                 meteoVar = $('#dailyMeteoVar').val();
                 url = aira.mapserver_base_url + 'historical/';
@@ -121,13 +96,13 @@ aira.mapModule = (function namespace() {
                 if (moment(date, 'YYYY-MM', true).isValid()) {
                     date = window.keepLastDailyValue;
                 }
-                createRasterMap(moment(date, dateFormat).format(dateFormat), meteoVar, url, dateFormat, timestamp);
+                createRasterMap(moment(date, dateFormat).format(dateFormat), meteoVar, url, dateFormat, timestep);
                 break;
             case 'monthly':
                 meteoVar = $('#monthlyMeteoVar').val();
                 url = aira.mapserver_base_url + 'historical/monthly/';
                 dateFormat = 'YYYY-MM';
-                createRasterMap(moment(date, dateFormat).format(dateFormat), meteoVar, url, dateFormat, timestamp);
+                createRasterMap(moment(date, dateFormat).format(dateFormat), meteoVar, url, dateFormat, timestep);
                 break;
         }
     };
@@ -184,19 +159,19 @@ aira.mapModule = (function namespace() {
     };
 
 
-    var createRasterMap = function (date, meteoVar, url, dateFormat, timestamp) {
+    var createRasterMap = function (date, meteoVar, url, dateFormat, timestep) {
         $('#wms_map').html('');
         $('#datetimepickerMirrorField').val(date);
         $('#datepickerInputSelector').val(date);
-        betweenDatesBtns(date, timestamp, dateFormat);
+        betweenDatesBtns(date, timestep, dateFormat);
         var urlToRequest;
         var layersToRequest;
-        if (timestamp === 'daily') {
+        if (timestep === 'daily') {
             window.keepLastDailyValue = date;
             urlToRequest = url + date + "/";
             layersToRequest = meteoVar + date;
         }
-        if (timestamp === 'monthly') {
+        if (timestep === 'monthly') {
             urlToRequest = url;
             layersToRequest = meteoVar + date;
         }
@@ -218,7 +193,7 @@ aira.mapModule = (function namespace() {
 
         map.addLayer(meteoVarWMS);
 
-        //if (timestamp === 'daily') {
+        //if (timestep === 'daily') {
         // When clicking on the map, show popup with values of variables
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
               defaultHandlerOptions: {
@@ -252,7 +227,7 @@ aira.mapModule = (function namespace() {
                   var bbox = xlow + ',' + ylow + ',' + xhigh + ',' + yhigh;
 
                   // Determine layers
-                  if (timestamp === 'daily')  {
+                  if (timestep === 'daily')  {
                       var layers = '';
                       ['temperature', 'humidity', 'wind_speed', 'rain', 'evaporation',
                        'solar_radiation'].forEach(function (s) {
@@ -263,7 +238,7 @@ aira.mapModule = (function namespace() {
                     });
                       urlPoint = url + date + '/';
                   }
-                  if (timestamp === 'monthly')  {
+                  if (timestep === 'monthly')  {
                       var layers = '';
                       // forEach is used because in near future more monthly
                       // meteorogical variables will be added.
@@ -303,24 +278,23 @@ aira.mapModule = (function namespace() {
         map.setCenter (new OpenLayers.LonLat(20.98, 39.15).transform('EPSG:4326', 'EPSG:3857'), 10);
     };
 
-    var initTimestampView = function () {
+    var initTimestepView = function () {
         $('#datetimepickerMirrorField').val(aira.yesterday);
         $('#datepickerInputSelector').val(aira.yesterday);
         window.keepLastDailyValue = aira.yesterday;
-        selectTimestampView();
-        selectRasterMap();
+        toggleBetweenMonthlyAndDaily();
     };
 
-    var betweenDatesBtns = function (date, timestamp, dateFormat) {
-        var addTimestamp;
+    var betweenDatesBtns = function (date, timestep, dateFormat) {
+        var addTimestep;
         if (dateFormat === "YYYY-MM-DD") {
-            addTimestamp = 'days';
+            addTimestep = 'days';
         } else {
-            addTimestamp = 'month';
+            addTimestep = 'month';
         }
         $('#current').html(moment(date, dateFormat).format(dateFormat));
-        var plusOneDate = moment(date, dateFormat).add(1, addTimestamp);
-        var minusOneDate = moment(date, dateFormat).subtract(1, addTimestamp);
+        var plusOneDate = moment(date, dateFormat).add(1, addTimestep);
+        var minusOneDate = moment(date, dateFormat).subtract(1, addTimestep);
         $('#next').html(plusOneDate.format(dateFormat) + "&nbsp;<i class='fa fa-chevron-right'></i>&nbsp;");
         $('#next').val(plusOneDate.format(dateFormat));
         if (plusOneDate.isAfter(aira.yesterday)) {
@@ -338,15 +312,15 @@ aira.mapModule = (function namespace() {
     };
 
     var createNextRasterMap = function () {
-        var timestamp = $('#timestampSelectorBtn').attr('raster-timestamp');
-        if (timestamp === 'daily') {
+        var timestep = $('#toggle-timestep').attr('current-timestep');
+        if (timestep === 'daily') {
             createRasterMap($('#next').val(),
                             $('#dailyMeteoVar').val(),
                             aira.mapserver_base_url + 'historical/',
                             'YYYY-MM-DD',
                             'daily');
         }
-        if (timestamp === 'monthly') {
+        if (timestep === 'monthly') {
             createRasterMap($('#next').val(),
                             $('#monthlyMeteoVar').val(),
                             aira.mapserver_base_url + 'historical/monthly/',
@@ -356,15 +330,15 @@ aira.mapModule = (function namespace() {
     };
 
     var createPreviousRasterMap = function () {
-        var timestamp = $('#timestampSelectorBtn').attr('raster-timestamp');
-        if (timestamp === 'daily') {
+        var timestep = $('#toggle-timestep').attr('current-timestep');
+        if (timestep === 'daily') {
             createRasterMap($('#previous').val(),
                             $('#dailyMeteoVar').val(),
                             aira.mapserver_base_url + 'historical/',
                             'YYYY-MM-DD',
                             'daily');
         }
-        if (timestamp === 'monthly') {
+        if (timestep === 'monthly') {
             createRasterMap($('#previous').val(),
                             $('#monthlyMeteoVar').val(),
                             aira.mapserver_base_url + 'historical/monthly/',
@@ -449,12 +423,12 @@ aira.mapModule = (function namespace() {
     };
 
     return {
-        selectRasterMap: selectRasterMap,
-        selectTimestampView: selectTimestampView,
+        setupRaster: setupRaster,
+        toggleBetweenMonthlyAndDaily: toggleBetweenMonthlyAndDaily,
         createRasterMap: createRasterMap,
         createNextRasterMap: createNextRasterMap,
         createPreviousRasterMap: createPreviousRasterMap,
-        initTimestampView: initTimestampView,
+        initTimestepView: initTimestepView,
         getMap: getMap,
         addCoveredAreaLayer: addCoveredAreaLayer,
         addAgrifieldsToMap: addAgrifieldsToMap,

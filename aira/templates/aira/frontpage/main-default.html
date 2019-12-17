@@ -26,16 +26,14 @@
 {% block extrajs %}
   <script type="text/javascript">
       aira.yesterday = '{{ end_date|date:"Y-m-d" }}';
-      aira.transToggleTimestampMap = {
-        toogleDaily: '{% trans "Switch to Daily" %}',
-        toogleMonthly: '{% trans "Switch to Monthly" %}',
-        mapLegendDaily: '{% trans "Click on the map to get values" %}',
-        mapLegendMonthly: '{% trans "Click on the map to get values" %}',
+      aira.timestepMessages = {
+        switchToDaily: '{% trans "Switch to Daily" %}',
+        switchToMonthly: '{% trans "Switch to Monthly" %}',
       }
   </script>
   <script type="text/javascript">
     $(document).ready(function(){
-      aira.mapModule.initTimestampView();
+      aira.mapModule.initTimestepView();
     });
   </script>
 {% endblock %}
