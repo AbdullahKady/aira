@@ -25,7 +25,8 @@
 
 {% block extrajs %}
   <script type="text/javascript">
-      aira.yesterday = '{{ end_date|date:"Y-m-d" }}';
+      aira.start_date = '{{ start_date|date:"Y-m-d" }}';
+      aira.end_date = '{{ end_date|date:"Y-m-d" }}';
       aira.timestepMessages = {
         switchToDaily: '{% trans "Switch to Daily" %}',
         switchToMonthly: '{% trans "Switch to Monthly" %}',

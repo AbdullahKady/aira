@@ -44,47 +44,67 @@ aira.mapModule = (function namespace() {
         var timestepToggle = document.getElementById('timestep-toggle');
         var oldTimestep = timestepToggle.getAttribute("current-timestep");
         var newTimestep = oldTimestep === 'daily' ? 'monthly' : 'daily';
-        $('#raster-selector-' + newTimestep).show();
-        $('#raster-selector-' + oldTimestep).hide();
         timestepToggle.setAttribute("current-timestep", newTimestep);
-        timestepToggle.textContent = aira.timestepMessages["switchTo" + capitalize(oldTimestep)];
-        setupDateTimePicker(newTimestep);
+        setTimestep();
+    };
+
+    var setTimestep = function() {
+        var timestepToggle = document.getElementById('timestep-toggle');
+        var activeTimestep = timestepToggle.getAttribute("current-timestep");
+        var otherTimestep = activeTimestep === 'daily' ? 'monthly' : 'daily';
+        document.getElementById("raster-selector-" + activeTimestep).style.display = 'block';
+        document.getElementById("raster-selector-" + activeTimestep).style.display = 'none';
+        timestepToggle.textContent = aira.timestepMessages["switchTo" + capitalize(otherTimestep)];
+        setDateSelectorInitialValue(activeTimestep);
+        setupDateTimePicker(activeTimestep);
         setupRaster();
     };
 
+    var setDateSelectorInitialValue = function (timestep) {
+        var selector = document.getElementById('date-input');
+        if (timestep == 'daily') {
+            selector.value = aira.end_date;
+        } else {
+            selector.value = aira.end_date.slice(0, 7);
+        }
+    };
+
     var setupDateTimePicker = function (timestep) {
-        $('#calendar').datetimepicker('remove');
+        $('#date-selector').datetimepicker('remove');
         switch (timestep) {
             case 'daily':
-                $('#calendar').datetimepicker({
+                $('#date-selector').datetimepicker({
                   format: 'yyyy-mm-dd',
-                  startDate: '2015-01-01',
-                  initialDate: aira.yesterday,
-                  endDate: aira.yesterday,
+                  startDate: aira.start_date,
+                  initialDate: aira.end_date,
+                  endDate: aira.end_date,
                   autoclose: true,
                   pickerPosition: 'bottom-left',
                   minView: 2,
                   startView: 2,
                   todayHighlight: false,
-                  linkField: 'datetimepickerMirrorField'});
+                });
                 break;
             case 'monthly':
-                $('#calendar').datetimepicker({
+                $('#date-selector').datetimepicker({
                   format: 'yyyy-mm',
-                  startDate: '2015-01',
+                  startDate: aira.start_date,
+                  initialDate: aira.end_date,
+                  endDate: aira.end_date,
                   autoclose: true,
                   pickerPosition: 'bottom-left',
                   minView: 3,
                   startView: 3,
-                  linkField: 'datetimepickerMirrorField',
-                  linkFormat: 'yyyy-mm'});
+                  });
                 break;
         }
     };
 
     var setupRaster = function () {
-        var timestep = $('#timestep-toggle').attr('current-timestep');
-        var date = $('#datetimepickerMirrorField').val();
+        var timestep = document.getElementById('timestep-toggle').getAttribute(
+            'current-timestep'
+        );
+        var date = document.getElementById('date-input').value;
         var meteoVar;
         var url;
         var dateFormat;
@@ -93,9 +113,6 @@ aira.mapModule = (function namespace() {
                 meteoVar = $('#dailyMeteoVar').val();
                 url = aira.mapserver_base_url + 'historical/';
                 dateFormat = 'YYYY-MM-DD';
-                if (moment(date, 'YYYY-MM', true).isValid()) {
-                    date = window.keepLastDailyValue;
-                }
                 createRasterMap(moment(date, dateFormat).format(dateFormat), meteoVar, url, dateFormat, timestep);
                 break;
             case 'monthly':
@@ -160,14 +177,12 @@ aira.mapModule = (function namespace() {
 
 
     var createRasterMap = function (date, meteoVar, url, dateFormat, timestep) {
-        $('#wms_map').html('');
-        $('#datetimepickerMirrorField').val(date);
-        $('#datepickerInputSelector').val(date);
-        betweenDatesBtns(date, timestep, dateFormat);
+        $('#map').html('');
+        document.getElementById('date-input').value = date;
+        setupDateChangingButtons(date, timestep, dateFormat);
         var urlToRequest;
         var layersToRequest;
         if (timestep === 'daily') {
-            window.keepLastDailyValue = date;
             urlToRequest = url + date + "/";
             layersToRequest = meteoVar + date;
         }
@@ -175,11 +190,9 @@ aira.mapModule = (function namespace() {
             urlToRequest = url;
             layersToRequest = meteoVar + date;
         }
-        // Keep this for debugging
-        // console.log("date:" + date + ';' + 'meteoVar:' + meteoVar + ';' + 'url:' + url);
 
         // Map object
-        var map = getMap('wms_map');
+        var map = getMap('map');
 
         // Meteo layer
         var meteoVarWMS = new OpenLayers.Layer.WMS(
@@ -193,7 +206,6 @@ aira.mapModule = (function namespace() {
 
         map.addLayer(meteoVarWMS);
 
-        //if (timestep === 'daily') {
         // When clicking on the map, show popup with values of variables
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
               defaultHandlerOptions: {
@@ -279,49 +291,40 @@ aira.mapModule = (function namespace() {
     };
 
     var initTimestepView = function () {
-        $('#datetimepickerMirrorField').val(aira.yesterday);
-        $('#datepickerInputSelector').val(aira.yesterday);
-        window.keepLastDailyValue = aira.yesterday;
-        toggleBetweenMonthlyAndDaily();
+        document.getElementById('date-input').value = aira.end_date;
+        setTimestep();
     };
 
-    var betweenDatesBtns = function (date, timestep, dateFormat) {
-        var addTimestep;
-        if (dateFormat === "YYYY-MM-DD") {
-            addTimestep = 'days';
-        } else {
-            addTimestep = 'month';
-        }
-        $('#current').html(moment(date, dateFormat).format(dateFormat));
-        var plusOneDate = moment(date, dateFormat).add(1, addTimestep);
-        var minusOneDate = moment(date, dateFormat).subtract(1, addTimestep);
-        $('#next').html(plusOneDate.format(dateFormat) + "&nbsp;<i class='fa fa-chevron-right'></i>&nbsp;");
-        $('#next').val(plusOneDate.format(dateFormat));
-        if (plusOneDate.isAfter(aira.yesterday)) {
-            $('#next').hide();
-        } else {
-            $('#next').show();
-        }
-        $('#previous').html("&nbsp;<i class='fa fa-chevron-left'></i>&nbsp;" + minusOneDate.format(dateFormat));
-        $('#previous').val(minusOneDate.format(dateFormat));
-        if (minusOneDate.isBefore("2015-01-01")) {
-            $('#previous').hide();
-        } else {
-            $('#previous').show();
-        }
+    var setupDateChangingButtons = function (date, timestep, dateFormat) {
+        document.getElementById('current-date').textContent = moment(date, dateFormat).format(dateFormat);
+        var timeunit = timestep === 'daily' ? 'days' : 'month';
+
+        var prevDate = moment(date, dateFormat).subtract(1, timeunit);
+        var prevDateElement = document.getElementById('previous-date')
+        prevDateElement.innerHTML = (
+            "&nbsp;<i class='fa fa-chevron-left'></i>&nbsp;" + prevDate.format(dateFormat)
+        );
+        prevDateElement.style.display = prevDate.isBefore(aira.start_date) ? "none" : "block";
+
+        var nextDate = moment(date, dateFormat).add(1, timeunit);
+        var nextDateElement = document.getElementById('next-date')
+        nextDateElement.innerHTML = (
+            nextDate.format(dateFormat) + "&nbsp;<i class='fa fa-chevron-right'></i>&nbsp;"
+        );
+        nextDateElement.style.display = nextDate.isAfter(aira.end_date) ? "none" : "block";
     };
 
     var createNextRasterMap = function () {
         var timestep = $('#toggle-timestep').attr('current-timestep');
         if (timestep === 'daily') {
-            createRasterMap($('#next').val(),
+            createRasterMap($('#next-date').val(),
                             $('#dailyMeteoVar').val(),
                             aira.mapserver_base_url + 'historical/',
                             'YYYY-MM-DD',
                             'daily');
         }
         if (timestep === 'monthly') {
-            createRasterMap($('#next').val(),
+            createRasterMap($('#next-date').val(),
                             $('#monthlyMeteoVar').val(),
                             aira.mapserver_base_url + 'historical/monthly/',
                             'YYYY-MM',
@@ -332,14 +335,14 @@ aira.mapModule = (function namespace() {
     var createPreviousRasterMap = function () {
         var timestep = $('#toggle-timestep').attr('current-timestep');
         if (timestep === 'daily') {
-            createRasterMap($('#previous').val(),
+            createRasterMap($('#previous-date').val(),
                             $('#dailyMeteoVar').val(),
                             aira.mapserver_base_url + 'historical/',
                             'YYYY-MM-DD',
                             'daily');
         }
         if (timestep === 'monthly') {
-            createRasterMap($('#previous').val(),
+            createRasterMap($('#previous-date').val(),
                             $('#monthlyMeteoVar').val(),
                             aira.mapserver_base_url + 'historical/monthly/',
                             'YYYY-MM',
