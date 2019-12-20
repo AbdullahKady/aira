@@ -52,21 +52,25 @@ aira.mapModule = (function namespace() {
         var timestepToggle = document.getElementById('timestep-toggle');
         var activeTimestep = timestepToggle.getAttribute("current-timestep");
         var otherTimestep = activeTimestep === 'daily' ? 'monthly' : 'daily';
-        document.getElementById("raster-selector-" + activeTimestep).style.display = 'block';
-        document.getElementById("raster-selector-" + activeTimestep).style.display = 'none';
-        timestepToggle.textContent = aira.timestepMessages["switchTo" + capitalize(otherTimestep)];
+        document.getElementById(
+            "raster-selector-" + activeTimestep
+        ).style.display = 'block';
+        document.getElementById(
+            "raster-selector-" + otherTimestep
+        ).style.display = 'none';
+        timestepToggle.textContent = aira.timestepMessages[
+            "switchTo" + capitalize(otherTimestep)
+        ];
         setDateSelectorInitialValue(activeTimestep);
         setupDateTimePicker(activeTimestep);
+        setupDateChangingButtons(date, timestep, dateFormat);
         setupRaster();
     };
 
     var setDateSelectorInitialValue = function (timestep) {
         var selector = document.getElementById('date-input');
-        if (timestep == 'daily') {
-            selector.value = aira.end_date;
-        } else {
-            selector.value = aira.end_date.slice(0, 7);
-        }
+        selector.value = timestep === 'daily' ?
+            aira.end_date : aira.end_date.slice(0, 7);
     };
 
     var setupDateTimePicker = function (timestep) {
@@ -179,115 +183,104 @@ aira.mapModule = (function namespace() {
     var createRasterMap = function (date, meteoVar, url, dateFormat, timestep) {
         $('#map').html('');
         document.getElementById('date-input').value = date;
-        setupDateChangingButtons(date, timestep, dateFormat);
-        var urlToRequest;
-        var layersToRequest;
-        if (timestep === 'daily') {
-            urlToRequest = url + date + "/";
-            layersToRequest = meteoVar + date;
-        }
-        if (timestep === 'monthly') {
-            urlToRequest = url;
-            layersToRequest = meteoVar + date;
-        }
+        var urlToRequest = timestep === 'daily' ? url + date + "/" : url;
+        var layersToRequest = meteoVar + date;
 
         // Map object
         var map = getMap('map');
 
         // Meteo layer
         var meteoVarWMS = new OpenLayers.Layer.WMS(
-                  meteoVar + date,
-                  urlToRequest,
-                  {layers: layersToRequest,
-                   format: 'image/png'},
-                  {isBaseLayer: false,
-                   projection: 'EPSG:3857',
-                   opacity: 0.65});
-
+            meteoVar + date,
+            urlToRequest,
+            {layers: layersToRequest, format: 'image/png'},
+            {isBaseLayer: false, projection: 'EPSG:3857', opacity: 0.65}
+        );
         map.addLayer(meteoVarWMS);
 
-        // When clicking on the map, show popup with values of variables
-        OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
-              defaultHandlerOptions: {
-                  'single': true,
-                  'double': false,
-                  'pixelTolerance': 0,
-                  'stopSingle': false,
-                  'stopDouble': false
-              },
-              initialize: function (options) {
-                  this.handlerOptions = OpenLayers.Util.extend(
-                      {}, this.defaultHandlerOptions
-                  );
-                  OpenLayers.Control.prototype.initialize.apply(
-                      this, arguments
-                  );
-                  this.handler = new OpenLayers.Handler.Click(
-                      this, {
-                          'click': this.trigger
-                      }, this.handlerOptions
-                  );
-              },
-              trigger: function (e) {
-                  var lonlat = map.getLonLatFromPixel(e.xy);
-                  var xhr = new XMLHttpRequest();
-                  // Create a small bbox such that the point is at the bottom left of the box
-                  var xlow = lonlat.lon;
-                  var xhigh = lonlat.lon + 50;
-                  var ylow = lonlat.lat;
-                  var yhigh = lonlat.lat + 50;
-                  var bbox = xlow + ',' + ylow + ',' + xhigh + ',' + yhigh;
+        setupPopup(map);
 
-                  // Determine layers
-                  if (timestep === 'daily')  {
-                      var layers = '';
-                      ['temperature', 'humidity', 'wind_speed', 'rain', 'evaporation',
-                       'solar_radiation'].forEach(function (s) {
-                        if (layers !== '') {
-                            layers = layers + ',';
-                        }
-                        layers = layers + 'Daily_' + s + '_' + date;
-                    });
-                      urlPoint = url + date + '/';
-                  }
-                  if (timestep === 'monthly')  {
-                      var layers = '';
-                      // forEach is used because in near future more monthly
-                      // meteorogical variables will be added.
-                      ['evaporation'].forEach(function (s) {
-                        if (layers !== '') {
-                            layers = layers + ',';
-                        }
-                        layers = layers + 'Monthly_' + s + '_' + date;
-                    });
-                      var urlPoint = url;
-                  }
-                  console.log(urlPoint);
-                  // Assemble URL
-                  urlPoint = urlPoint + '?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&SRS=EPSG:3857&info_format=text/html';
-                  urlPoint = urlPoint + '&BBOX=' + bbox + '&WIDTH=2&HEIGHT=2&X=0&Y=0';
-                  urlPoint = urlPoint + '&LAYERS=' + layers + '&QUERY_LAYERS=' + layers;
-
-                  xhr.open('GET', urlPoint, false);
-                  xhr.send();
-                  /* The test "length < 250" below is an ugly hack for not showing
-                   * popups at a masked area. The masked area has the value nodata,
-                   * which displays as a large negative number with very many digits.
-                   */
-                  if (xhr.readyState === 4  &&  xhr.responseText.length < 250) {
-                      map.addPopup(new OpenLayers.Popup.FramedCloud(
-                                   null, lonlat, null,
-                                   xhr.responseText,
-                                   null, true));
-                  }
-              }
-          });
         var click = new OpenLayers.Control.Click();
         map.addControl(click);
         click.activate();
 
-        // Add control and center
-        map.setCenter (new OpenLayers.LonLat(20.98, 39.15).transform('EPSG:4326', 'EPSG:3857'), 10);
+        map.setCenter(
+            new OpenLayers.LonLat(20.98, 39.15).transform('EPSG:4326', 'EPSG:3857'), 10
+        );
+    };
+
+    var setupPopup = function(map) {
+        OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {
+            defaultHandlerOptions: {
+                'single': true,
+                'double': false,
+                'pixelTolerance': 0,
+                'stopSingle': false,
+                'stopDouble': false
+            },
+            initialize: function (options) {
+                this.handlerOptions = OpenLayers.Util.extend(
+                    {}, this.defaultHandlerOptions
+                );
+                OpenLayers.Control.prototype.initialize.apply(this, arguments);
+                this.handler = new OpenLayers.Handler.Click(
+                    this, {'click': this.trigger}, this.handlerOptions
+                );
+            },
+            trigger: function (e) {
+                var lonlat = map.getLonLatFromPixel(e.xy);
+                var xhr = new XMLHttpRequest();
+                // Create a small bbox such that the point is at the bottom left of the box
+                var xlow = lonlat.lon;
+                var xhigh = lonlat.lon + 50;
+                var ylow = lonlat.lat;
+                var yhigh = lonlat.lat + 50;
+                var bbox = xlow + ',' + ylow + ',' + xhigh + ',' + yhigh;
+
+                // Determine layers
+                if (timestep === 'daily')  {
+                    var layers = '';
+                    ['temperature', 'humidity', 'wind_speed', 'rain', 'evaporation',
+                     'solar_radiation'].forEach(function (s) {
+                      if (layers !== '') {
+                          layers = layers + ',';
+                      }
+                      layers = layers + 'Daily_' + s + '_' + date;
+                  });
+                    urlPoint = url + date + '/';
+                }
+                if (timestep === 'monthly')  {
+                    var layers = '';
+                    // forEach is used because in near future more monthly
+                    // meteorogical variables will be added.
+                    ['evaporation'].forEach(function (s) {
+                      if (layers !== '') {
+                          layers = layers + ',';
+                      }
+                      layers = layers + 'Monthly_' + s + '_' + date;
+                  });
+                    var urlPoint = url;
+                }
+                console.log(urlPoint);
+                // Assemble URL
+                urlPoint = urlPoint + '?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&SRS=EPSG:3857&info_format=text/html';
+                urlPoint = urlPoint + '&BBOX=' + bbox + '&WIDTH=2&HEIGHT=2&X=0&Y=0';
+                urlPoint = urlPoint + '&LAYERS=' + layers + '&QUERY_LAYERS=' + layers;
+
+                xhr.open('GET', urlPoint, false);
+                xhr.send();
+                /* The test "length < 250" below is an ugly hack for not showing
+                 * popups at a masked area. The masked area has the value nodata,
+                 * which displays as a large negative number with very many digits.
+                 */
+              if (xhr.readyState === 4  &&  xhr.responseText.length < 250) {
+                  map.addPopup(new OpenLayers.Popup.FramedCloud(
+                               null, lonlat, null,
+                               xhr.responseText,
+                               null, true));
+                }
+            }
+        });
     };
 
     var initTimestepView = function () {
