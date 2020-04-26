@@ -358,8 +358,9 @@ class Agrifield(models.Model, AgrifieldSWBMixin, AgrifieldSWBResultsMixin):
 
     def get_applied_irrigation_defaults(self):
         """
-        Returns a dict of all default values from the history of AppliedIrrigations
-        per this field. Note that some dict keys won't exist if no previous values.
+        Return a dict of all default values from the history of AppliedIrrigations.
+
+        Note that some dict keys won't exist if no previous entries are found.
         """
         return {
             **self._get_applied_irrigation_default_type(),

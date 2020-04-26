@@ -7,38 +7,69 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aira', '0029_rename_irrigationlog'),
+        ("aira", "0029_rename_irrigationlog"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='appliedirrigation',
-            name='hydrometer_reading_end',
-            field=models.FloatField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(0.0)]),
+            model_name="appliedirrigation",
+            name="hydrometer_reading_end",
+            field=models.FloatField(
+                blank=True,
+                null=True,
+                validators=[django.core.validators.MinValueValidator(0.0)],
+            ),
         ),
         migrations.AddField(
-            model_name='appliedirrigation',
-            name='hydrometer_reading_start',
-            field=models.FloatField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(0.0)]),
+            model_name="appliedirrigation",
+            name="hydrometer_reading_start",
+            field=models.FloatField(
+                blank=True,
+                null=True,
+                validators=[django.core.validators.MinValueValidator(0.0)],
+            ),
         ),
         migrations.AddField(
-            model_name='appliedirrigation',
-            name='hydrometer_water_percentage',
-            field=models.PositiveSmallIntegerField(blank=True, default=100, null=True, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(100)]),
+            model_name="appliedirrigation",
+            name="hydrometer_water_percentage",
+            field=models.PositiveSmallIntegerField(
+                blank=True,
+                default=100,
+                null=True,
+                validators=[
+                    django.core.validators.MinValueValidator(1),
+                    django.core.validators.MaxValueValidator(100),
+                ],
+            ),
         ),
         migrations.AddField(
-            model_name='appliedirrigation',
-            name='irrigation_type',
-            field=models.CharField(choices=[('VOLUME_OF_WATER', 'Volume of water'), ('DURATION_OF_IRRIGATION', 'Duration of irrigation'), ('HYDROMETER_READINGS', 'Hydrometer readings')], default='VOLUME_OF_WATER', max_length=50),
+            model_name="appliedirrigation",
+            name="irrigation_type",
+            field=models.CharField(
+                choices=[
+                    ("VOLUME_OF_WATER", "Volume of water"),
+                    ("DURATION_OF_IRRIGATION", "Duration of irrigation"),
+                    ("HYDROMETER_READINGS", "Hydrometer readings"),
+                ],
+                default="VOLUME_OF_WATER",
+                max_length=50,
+            ),
         ),
         migrations.AddField(
-            model_name='appliedirrigation',
-            name='supplied_duration',
-            field=models.PositiveIntegerField(blank=True, null=True, verbose_name='Duration in minutes'),
+            model_name="appliedirrigation",
+            name="supplied_duration",
+            field=models.PositiveIntegerField(
+                blank=True, null=True, verbose_name="Duration in minutes"
+            ),
         ),
         migrations.AddField(
-            model_name='appliedirrigation',
-            name='supplied_flow_rate',
-            field=models.FloatField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(0.0)], verbose_name='Flow rate (m3/h)'),
+            model_name="appliedirrigation",
+            name="supplied_flow_rate",
+            field=models.FloatField(
+                blank=True,
+                null=True,
+                validators=[django.core.validators.MinValueValidator(0.0)],
+                verbose_name="Flow rate (m3/h)",
+            ),
         ),
     ]
