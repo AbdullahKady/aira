@@ -207,13 +207,14 @@ class ExecuteModelTestCase(DataTestCase):
     def test_dr(self):
         self.assertAlmostEqual(
             self.timeseries.at[pd.Timestamp("2018-03-18 23:59"), "dr"],
-            9.0148428,
+            8.8219672504910200,
             places=4,
         )
 
     def test_theta(self):
         self.assertAlmostEqual(
-            self.timeseries.at[pd.Timestamp("2018-03-18 23:59"), "theta"], 0.3905107
+            self.timeseries.at[pd.Timestamp("2018-03-18 23:59"), "theta"],
+            0.3907137186836940,
         )
 
     def test_actual_net_irrigation(self):
