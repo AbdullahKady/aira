@@ -349,64 +349,68 @@ class Agrifield(models.Model, AgrifieldSWBMixin, AgrifieldSWBResultsMixin):
         ).get_cached(dest, version=2)
         return dest
 
-    def _get_latest_irrigation_paramaters(self):
-        # Returns the latest paramater values for each irrigation
-        # type according to its latest entry (if available)
-
-        latest_values = {}
-        irrigations = self.appliedirrigation_set.all()
-
-        try:
-            volume_irr = irrigations.filter(irrigation_type="VOLUME_OF_WATER").latest()
-            latest_values["supplied_water_volume"] = volume_irr.supplied_water_volume
-        except AppliedIrrigation.DoesNotExist:
-            pass
-
-        try:
-            duration_irr = irrigations.filter(
-                irrigation_type="DURATION_OF_IRRIGATION"
-            ).latest()
-            latest_values["supplied_duration"] = duration_irr.supplied_duration
-            latest_values["supplied_flow_rate"] = duration_irr.supplied_flow_rate
-        except AppliedIrrigation.DoesNotExist:
-            pass
-
-        try:
-            hydro_irr = irrigations.filter(
-                irrigation_type="HYDROMETER_READINGS"
-            ).latest()
-            latest_values[
-                "hydrometer_water_percentage"
-            ] = hydro_irr.hydrometer_water_percentage
-            latest_values["hydrometer_reading_start"] = hydro_irr.hydrometer_reading_end
-        except AppliedIrrigation.DoesNotExist:
-            pass
-
-        return latest_values
-
-    def get_applied_irrigation_defaults(self):
-        """
-        Returns a dict of all default values from the history of AppliedIrrigations
-        per this field. Note that some dict keys won't exist if no previous values.
-        """
-
-        try:
-            # Set the default irrigation type to the latest.
-            irrigation_type = self.appliedirrigation_set.latest().irrigation_type
-        except AppliedIrrigation.DoesNotExist:
-            return {}
-
-        return {
-            **self._get_latest_irrigation_paramaters(),
-            "irrigation_type": irrigation_type,
-        }
-
     def _delete_cached_point_timeseries(self):
         filenamesglob = os.path.join(
             settings.AIRA_TIMESERIES_CACHE_DIR, "agrifield{}-*".format(self.id)
         )
         for filename in iglob(filenamesglob):
             os.remove(filename)
+
+    def get_applied_irrigation_defaults(self):
+        """
+        Returns a dict of all default values from the history of AppliedIrrigations
+        per this field. Note that some dict keys won't exist if no previous values.
+        """
+        return {
+            **self._get_applied_irrigation_default_type(),
+            **self._get_applied_irrigation_defaults_for_volume(),
+            **self._get_applied_irrigation_defaults_for_duration(),
+            **self._get_applied_irrigation_defaults_for_hydrometer(),
+        }
+
+    def _get_applied_irrigation_default_type(self):
+        try:
+            return {
+                "irrigation_type": self.appliedirrigation_set.latest().irrigation_type
+            }
+        except AppliedIrrigation.DoesNotExist:
+            return {}
+
+    def _get_applied_irrigation_defaults_for_volume(self):
+        try:
+            return {
+                "supplied_water_volume": self.appliedirrigation_set.filter(
+                    irrigation_type="VOLUME_OF_WATER"
+                )
+                .latest()
+                .supplied_water_volume
+            }
+        except AppliedIrrigation.DoesNotExist:
+            return {}
+
+    def _get_applied_irrigation_defaults_for_duration(self):
+        try:
+            duration_irr = self.appliedirrigation_set.filter(
+                irrigation_type="DURATION_OF_IRRIGATION"
+            ).latest()
+            return {
+                "supplied_duration": duration_irr.supplied_duration,
+                "supplied_flow_rate": duration_irr.supplied_flow_rate,
+            }
+        except AppliedIrrigation.DoesNotExist:
+            return {}
+
+    def _get_applied_irrigation_defaults_for_hydrometer(self):
+        try:
+            hydro_irr = self.appliedirrigation_set.filter(
+                irrigation_type="HYDROMETER_READINGS"
+            ).latest()
+            return {
+                "hydrometer_water_percentage": hydro_irr.hydrometer_water_percentage,
+                "hydrometer_reading_start": hydro_irr.hydrometer_reading_end,
+            }
+        except AppliedIrrigation.DoesNotExist:
+            return {}
 
 
 class AppliedIrrigation(models.Model):
