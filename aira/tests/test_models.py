@@ -186,7 +186,7 @@ class AgrifieldLatestAppliedIrrigationDefaultsTestCase(TestCase):
         self.agrifield = mommy.make(Agrifield)
 
     def test_no_applied_irrigations_present(self):
-        defaults = self.agrifield.get_latest_applied_irrigation_defaults()
+        defaults = self.agrifield.get_applied_irrigation_defaults()
         self.assertEqual(defaults, {})
 
     def test_default_irrigation_type_and_all_values_present(self):
@@ -230,7 +230,7 @@ class AgrifieldLatestAppliedIrrigationDefaultsTestCase(TestCase):
             hydrometer_water_percentage=50,
             hydrometer_reading_start=60,
         )
-        defaults = self.agrifield.get_latest_applied_irrigation_defaults()
+        defaults = self.agrifield.get_applied_irrigation_defaults()
         expected_defaults = {
             "irrigation_type": "HYDROMETER_READINGS",
             "supplied_water_volume": 11.0,
@@ -249,7 +249,7 @@ class AgrifieldLatestAppliedIrrigationDefaultsTestCase(TestCase):
             timestamp=dt.datetime(2020, 3, 1, 0, 0, tzinfo=dt.timezone.utc),
             supplied_water_volume=1337,
         )
-        defaults = self.agrifield.get_latest_applied_irrigation_defaults()
+        defaults = self.agrifield.get_applied_irrigation_defaults()
         expected_defaults = {
             "irrigation_type": "VOLUME_OF_WATER",
             "supplied_water_volume": 1337,
