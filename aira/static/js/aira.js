@@ -474,3 +474,50 @@ aira.mapModule = (function namespace() {
         registerClickEvent: registerClickEvent,
     };
 }());
+
+aira.showAndHideIrrigationFieldsAccordingToType = function () {
+    function getFormGroupElement(inputElement) {
+        // Handles the case when an input is nested in another div inside the form group
+        if (inputElement.parentElement.className.includes("form-group")) {
+            return inputElement.parentElement;
+        }
+        return inputElement.parentElement.parentElement;
+    }
+    function hideFields(fields) {
+        fields.forEach((field) => {
+            const input = document.querySelector(`#id_${field}`);
+            getFormGroupElement(input).style.display = "none";
+            input.removeAttribute("required");
+        });
+    }
+    function showFields(fields) {
+        fields.forEach((field) => {
+            const input = document.querySelector(`#id_${field}`);
+            getFormGroupElement(input).style.display = "";
+            input.setAttribute("required", "");
+        });
+    }
+    function onIrrigationTypeChanged(_) {
+        const selectedType = document.querySelector('input[name="irrigation_type"]:checked').value;
+        const fieldsPerType = {
+            VOLUME_OF_WATER: ["supplied_water_volume"],
+            DURATION_OF_IRRIGATION: ["supplied_duration", "supplied_flow_rate"],
+            HYDROMETER_READINGS: [
+                "hydrometer_reading_start",
+                "hydrometer_reading_end",
+                "hydrometer_water_percentage",
+            ],
+        };
+        for (const type in fieldsPerType) {
+            if (type === selectedType) {
+                showFields(fieldsPerType[type]);
+            } else {
+                hideFields(fieldsPerType[type]);
+            }
+        }
+    }
+
+    Array.from(document.querySelectorAll('input[name="irrigation_type"]'))
+      .forEach(input => input.addEventListener("change", onIrrigationTypeChanged))
+    onIrrigationTypeChanged(); // Called once at the start to display according to default choice
+  }
