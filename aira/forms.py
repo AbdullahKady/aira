@@ -86,18 +86,28 @@ class AgrifieldForm(forms.ModelForm):
 
 
 class AppliedIrrigationForm(forms.ModelForm):
+    LABLED_IRRIGATION_TYPES = [
+        ("VOLUME_OF_WATER", _("I want to specify the volume of water")),
+        ("DURATION_OF_IRRIGATION", _("I want to specify the duration of irrigation")),
+        ("HYDROMETER_READINGS", _("I want to register the hydrometer readings")),
+    ]
+    irrigation_type = forms.ChoiceField(
+        widget=forms.RadioSelect(), choices=LABLED_IRRIGATION_TYPES, label=""
+    )
+
     class Meta:
         model = AppliedIrrigation
         exclude = ("agrifield",)
         labels = {
             "timestamp": _("Date and time (YYYY-MM-DD HH:mm:ss) "),
-            "irrigation_type": _("Type of irrigation used"),
             "supplied_water_volume": _("Volume of applied irrigation water (m³)"),
-            "supplied_duration": _("The duration of irrigation in minutes"),
+            "supplied_duration": _("Duration of irrigation"),
             "supplied_flow_rate": _("Water flow during irrigation (m³/h)"),
-            "hydrometer_reading_start": _("Hydrometer reading at the start"),
-            "hydrometer_reading_end": _("Hydrometer reading at the end"),
-            "hydrometer_water_percentage": _("Percentage of water passing through (%)"),
+            "hydrometer_reading_start": _("Hydrometer reading at start of irrigation"),
+            "hydrometer_reading_end": _("Hydrometer reading at end of irrigation"),
+            "hydrometer_water_percentage": _(
+                "Percentage of water that corresponds to this field"
+            ),
         }
 
     def clean(self):
