@@ -21,7 +21,7 @@ aira.agrifield_edit_document_ready = function () {
 };
 
 aira.setupDateTimePickerForAppliedIrrigation = function () {
-    $("#id_time").datetimepicker({
+    $("#id_timestamp").datetimepicker({
         format: "yyyy-mm-dd hh:ii",
         autoclose: true,
         todayBtn: true,
