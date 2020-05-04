@@ -187,7 +187,7 @@ class AgrifieldLatestAppliedIrrigationDefaultsTestCase(TestCase):
 
     def test_no_applied_irrigations_present(self):
         defaults = self.agrifield.get_applied_irrigation_defaults()
-        self.assertEqual(defaults, {})
+        self.assertEqual(defaults, {"irrigation_type": "VOLUME_OF_WATER"})
 
     def test_default_irrigation_type_and_all_values_present(self):
         latest = dt.datetime(2020, 3, 1, 0, 0, tzinfo=dt.timezone.utc)

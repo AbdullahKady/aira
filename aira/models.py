@@ -375,7 +375,7 @@ class Agrifield(models.Model, AgrifieldSWBMixin, AgrifieldSWBResultsMixin):
                 "irrigation_type": self.appliedirrigation_set.latest().irrigation_type
             }
         except AppliedIrrigation.DoesNotExist:
-            return {}
+            return {"irrigation_type": "VOLUME_OF_WATER"}
 
     def _get_applied_irrigation_defaults_for_volume(self):
         try:
