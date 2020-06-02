@@ -1,0 +1,85 @@
+{% extends 'aira/base/main.html' %}
+{% load i18n %}
+
+{% load bootstrap3 %}
+{% block title %} {{ user }} {% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4">
+        <h3>{% trans "Add telemetric flowmeter" %} </h3>
+        <hr>
+        <form method="post" role="form" class="form-horizontal" style="display: none;">
+          {% csrf_token %}
+          {% bootstrap_form form %}
+          {% buttons %}
+            {% if user.username != "demo" %}
+              <div class="col-sm-offset-2 col-sm-10">
+                <button type="submit" class="btn btn-success btn-xs">{% trans "Add" %}</button>
+                <a class="btn btn-success btn-xs" href="{% url 'home' username=agrifield.owner.username %}"> {% trans "Back" %} </a>
+              </div>
+            {% endif %}
+          {% endbuttons %}
+        </form>
+      </div>
+      <div class="col-md-1">
+      </div>
+  </div>
+{% endblock %}
+
+{% block extrajs %}
+  <script type="text/javascript">
+    /*
+      Keeping the JS embedded directly since this is a temporary solution.
+      In reality, I'd assume we can generalize the show/hide functionality
+      to be used in both forms without duplication
+    */
+
+    (function() {
+        function getFormGroupElement(inputElement) {
+            console.log(inputElement)
+            // Handles the case when an input is nested in another div inside the form group
+            if (inputElement.parentElement.className.includes("form-group")) {
+                return inputElement.parentElement;
+            }
+            return inputElement.parentElement.parentElement;
+        }
+        function hideFields(fields) {
+            fields.forEach((field) => {
+                const input = document.querySelector(`#id_${field}`);
+                getFormGroupElement(input).style.display = "none";
+                input.removeAttribute("required");
+            });
+        }
+        function showFields(fields) {
+            fields.forEach((field) => {
+                const input = document.querySelector(`#id_${field}`);
+                getFormGroupElement(input).style.display = "";
+                input.setAttribute("required", "");
+            });
+        }
+        function onTelemetricSystemChanged(_) {
+            const selectedType = document.querySelector('select#id_telemetric_system_type').value;
+            const fieldsPerType = {
+                NO_SYSTEM: [],
+                LoRA_ARTA: ["device_id", "water_percentage"],
+            };
+            for (const type in fieldsPerType) {
+                if (type === selectedType) {
+                    showFields(fieldsPerType[type]);
+                } else {
+                    hideFields(fieldsPerType[type]);
+                }
+            }
+        }
+
+        document.querySelector('select#id_telemetric_system_type')
+            .addEventListener("change", onTelemetricSystemChanged)
+
+        onTelemetricSystemChanged(); // Called once at the start to display fields according to default choice
+        // The following line is to avoid a flashing form on first load
+        document.querySelector('div.container form.form-horizontal').style.display = "";
+    })()
+  </script>
+{% endblock %}

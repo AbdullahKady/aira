@@ -133,6 +133,42 @@ class AppliedIrrigationForm(forms.ModelForm):
                 self.add_error(field, _("This field is required."))
 
 
+class TelemetricFlowmeterForm(forms.Form):
+    telemetric_system_type = forms.ChoiceField(
+        choices=[
+            ("NO_SYSTEM", _("No telemetric system")),
+            ("LoRA_ARTA", _("LoRA_ARTA")),
+        ],
+        initial="NO_SYSTEM",
+    )
+    water_percentage = forms.IntegerField(
+        label="Percentage of water that corresponds to the flowmeter (%)",
+        min_value=0,
+        max_value=100,
+        required=False,
+    )
+    device_id = forms.CharField(max_length=64, strip=True, required=False)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        telemetric_system_type = cleaned_data.get("telemetric_system_type")
+        if telemetric_system_type == "NO_SYSTEM":
+            return cleaned_data
+
+        required_fields = ["water_percentage"]
+        if telemetric_system_type == "LoRA_ARTA":
+            required_fields.append("device_id")
+
+        self._validate_required(required_fields)
+        return super().clean()
+
+    def _validate_required(self, fields=[]):
+        # Used to require fields dynamically (depending on other submitted values)
+        for field in fields:
+            if self.cleaned_data.get(field, None) is None:
+                self.add_error(field, _("This field is required."))
+
+
 class MyRegistrationForm(RegistrationForm):
 
     """

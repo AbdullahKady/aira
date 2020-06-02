@@ -13,11 +13,16 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView, View
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import CreateView, DeleteView, UpdateView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView, FormView
 
 import pandas as pd
 
-from .forms import AgrifieldForm, AppliedIrrigationForm, ProfileForm
+from .forms import (
+    AgrifieldForm,
+    AppliedIrrigationForm,
+    ProfileForm,
+    TelemetricFlowmeterForm,
+)
 from .models import Agrifield, AppliedIrrigation, Profile
 
 
@@ -349,3 +354,23 @@ class DownloadSoilAnalysisView(LoginRequiredMixin, View):
         if not agrifield.soil_analysis:
             raise Http404
         return FileResponse(agrifield.soil_analysis, as_attachment=True)
+
+
+class CreateTelemetricFlowmeterView(LoginRequiredMixin, FormView):
+    form_class = TelemetricFlowmeterForm
+    success_url = "/home"
+    template_name = 'aira/telemetricflowmeter/create.html'
+
+    def get_success_url(self):
+        field = Agrifield.objects.get(pk=self.kwargs["pk"])
+        return reverse("home", kwargs={"username": field.owner})
+
+    def dispatch(self, request, *args, **kwargs):
+        self.agrifield = get_object_or_404(Agrifield, pk=self.kwargs["pk"])
+        self.agrifield.can_edit(request.user)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["agrifield"] = self.agrifield
+        return context
