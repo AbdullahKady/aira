@@ -295,13 +295,13 @@ class AppliedIrrigationTestCase(TestCase):
         kwargs = {
             **self.defaults,
             "flowmeter_reading_start": 1000,
-            "flowmeter_reading_end": 1000 + 1337 * 2,
+            "flowmeter_reading_end": 1000 + 1337,
             "flowmeter_water_percentage": 50,
         }
         irrigation = mommy.make(
             AppliedIrrigation, irrigation_type="FLOWMETER_READINGS", **kwargs
         )
-        self.assertEqual(irrigation.volume, 1337)
+        self.assertEqual(irrigation.volume, 1337 * 2)  # Double; since percentage is 50%
 
     def test_calculated_volume_with_no_values_recorded(self):
         types = ["VOLUME_OF_WATER", "DURATION_OF_IRRIGATION", "FLOWMETER_READINGS"]

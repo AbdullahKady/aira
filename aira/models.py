@@ -403,12 +403,12 @@ class Agrifield(models.Model, AgrifieldSWBMixin, AgrifieldSWBResultsMixin):
 
     def _get_applied_irrigation_defaults_for_flowmeter(self):
         try:
-            hydro_irr = self.appliedirrigation_set.filter(
+            flow_irr = self.appliedirrigation_set.filter(
                 irrigation_type="FLOWMETER_READINGS"
             ).latest()
             return {
-                "flowmeter_water_percentage": hydro_irr.flowmeter_water_percentage,
-                "flowmeter_reading_start": hydro_irr.flowmeter_reading_end,
+                "flowmeter_water_percentage": flow_irr.flowmeter_water_percentage,
+                "flowmeter_reading_start": flow_irr.flowmeter_reading_end,
             }
         except AppliedIrrigation.DoesNotExist:
             return {}
@@ -462,9 +462,8 @@ class AppliedIrrigation(models.Model):
             if self.irrigation_type == "DURATION_OF_IRRIGATION":
                 return (self.supplied_duration / 60) * self.supplied_flow_rate
             elif self.irrigation_type == "FLOWMETER_READINGS":
-                return (self.flowmeter_reading_end - self.flowmeter_reading_start) * (
-                    self.flowmeter_water_percentage / 100
-                )
+                difference = self.flowmeter_reading_end - self.flowmeter_reading_start
+                return difference * (100 / self.flowmeter_water_percentage)
         except TypeError:
             return None
 
