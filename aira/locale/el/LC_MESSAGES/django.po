@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-07 11:30+0300\n"
+"POT-Creation-Date: 2020-06-04 10:03+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -171,11 +171,31 @@ msgstr "Ένδειξη υδρομέτρου στο τέλος της άρδευ�
 msgid "Percentage of water that corresponds to this field (%)"
 msgstr "Ποσοστό νερού που αντιστοιχεί σ' αυτό το αγροτεμάχιο (%)"
 
-#: aira/forms.py:133
+#: aira/forms.py:133 aira/forms.py:172
 msgid "This field is required."
 msgstr "Αυτό το πεδίο πρέπει να έχει τιμή."
 
-#: aira/forms.py:142
+#: aira/forms.py:138
+msgid "Telemetric system type"
+msgstr "Τύπος τηλεμετρικού συστήματος"
+
+#: aira/forms.py:140
+msgid "No telemetric system"
+msgstr "Χωρίς τηλεμετρικό σύστημα"
+
+#: aira/forms.py:141
+msgid "LoRA_ARTA"
+msgstr ""
+
+#: aira/forms.py:146
+msgid "Device id"
+msgstr "Κωδικός συσκευής"
+
+#: aira/forms.py:149
+msgid "Percentage of water that corresponds to the flowmeter (%)"
+msgstr "Ποσοστό νερού που αντιστοιχεί στο υδρόμετρο (%)"
+
+#: aira/forms.py:181
 msgid "Are you human?"
 msgstr "Είστε άνθρωπος;"
 
@@ -267,12 +287,14 @@ msgid "Update"
 msgstr "Ενημέρωση"
 
 #: aira/templates/aira/agrifield_edit/form_basic_fields.html:24
+#: aira/templates/aira/telemetricflowmeter/create.html:19
 msgid "Add"
 msgstr "Πρόσθεση"
 
 #: aira/templates/aira/agrifield_edit/form_basic_fields.html:31
 #: aira/templates/aira/appliedirrigation/create.html:20
 #: aira/templates/aira/appliedirrigation/update.html:20
+#: aira/templates/aira/telemetricflowmeter/create.html:20
 msgid "Back"
 msgstr "Επιστροφή"
 
@@ -323,6 +345,7 @@ msgid "Add field"
 msgstr "Πρόσθεση αγροτεμαχίου"
 
 #: aira/templates/aira/appliedirrigation/confirm_delete.html:13
+#, python-format
 msgid ""
 "\n"
 "            Are you sure you want to delete the irrigation of "
@@ -367,36 +390,36 @@ msgstr "Μετάβαση"
 msgid "demo"
 msgstr "Δοκιμαστική χρήση"
 
-#: aira/templates/aira/base/navbar-default.html:25
+#: aira/templates/aira/base/navbar-default.html:23
 #: aira/templates/aira/home/main-default.html:7
 #, python-format
 msgid "%(username)s home"
 msgstr "Αρχική %(username)s"
 
-#: aira/templates/aira/base/navbar-default.html:28
+#: aira/templates/aira/base/navbar-default.html:26
 msgid "Management"
 msgstr "Διαχείριση"
 
-#: aira/templates/aira/base/navbar-default.html:31
+#: aira/templates/aira/base/navbar-default.html:29
 msgid "My fields"
 msgstr "Τα αγροτεμάχιά μου"
 
+#: aira/templates/aira/base/navbar-default.html:32
 #: aira/templates/aira/base/navbar-default.html:34
-#: aira/templates/aira/base/navbar-default.html:36
 msgid "Account"
 msgstr "Λογαριασμός"
 
-#: aira/templates/aira/base/navbar-default.html:38
+#: aira/templates/aira/base/navbar-default.html:36
 msgid "Tools"
 msgstr "Εργαλεία"
 
-#: aira/templates/aira/base/navbar-default.html:40
+#: aira/templates/aira/base/navbar-default.html:38
 #: aira/templates/registration/logout.html:5
 #: aira/templates/registration/logout.html:8
 msgid "Logout"
 msgstr "Έξοδος"
 
-#: aira/templates/aira/base/navbar-default.html:48
+#: aira/templates/aira/base/navbar-default.html:46
 #: aira/templates/registration/activation_complete.html:11
 #: aira/templates/registration/login.html:5
 #: aira/templates/registration/login.html:11
@@ -406,16 +429,16 @@ msgstr "Έξοδος"
 msgid "Login"
 msgstr "Είσοδος"
 
-#: aira/templates/aira/base/navbar-default.html:49
+#: aira/templates/aira/base/navbar-default.html:47
 #: aira/templates/registration/registration_form.html:23
 msgid "Register"
 msgstr "Εγγραφή"
 
-#: aira/templates/aira/base/navbar-default.html:50
+#: aira/templates/aira/base/navbar-default.html:48
 msgid "Lost password?"
 msgstr "Ξεχάσατε το συνθηματικό;"
 
-#: aira/templates/aira/base/navbar-default.html:53
+#: aira/templates/aira/base/navbar-default.html:51
 msgid "Try"
 msgstr "Δοκιμή"
 
@@ -571,39 +594,44 @@ msgid "Irrigations applied"
 msgstr "Αρδεύσεις που πραγματοποιήθηκαν"
 
 #: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:8
+#: aira/templates/aira/telemetricflowmeter/create.html:11
+msgid "Telemetry"
+msgstr "Τηλεμετρία"
+
+#: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:11
 msgid "Irrigation report"
 msgstr "Αναφορά άρδευσης"
 
-#: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:11
+#: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:14
 #: aira/templates/aira/performance_chart/main.html:10
 msgid "Irrigation performance"
 msgstr "Αρδευτική αποδοτικότητα"
 
-#: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:15
+#: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:18
 msgid "Weather history"
 msgstr "Ιστορικό καιρού"
 
-#: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:18
+#: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:21
 msgid "Temperature"
 msgstr "Θερμοκρασία"
 
-#: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:19
+#: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:22
 msgid "Humidity"
 msgstr "Υγρασία"
 
-#: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:20
+#: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:23
 msgid "Precipitation"
 msgstr "Βροχόπτωση"
 
-#: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:21
+#: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:24
 msgid "Solar radiation"
 msgstr "Ηλιακή ακτινοβολία"
 
-#: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:22
+#: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:25
 msgid "Wind speed"
 msgstr "Ταχύτητα ανέμου"
 
-#: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:23
+#: aira/templates/aira/home/agrifields_list/agrifield_results_buttons.html:26
 msgid "Calculated evaporation"
 msgstr "Υπολογισμένη εξατμισοδιαπνοή"
 
@@ -909,6 +937,6 @@ msgstr "Παρακαλώ ελέγξτε το email σας"
 msgid "Registration"
 msgstr "Εγγραφή"
 
-#: aira/views.py:56
+#: aira/views.py:61
 msgid "N/A"
 msgstr ""
