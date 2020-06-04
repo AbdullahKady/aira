@@ -135,15 +135,18 @@ class AppliedIrrigationForm(forms.ModelForm):
 
 class TelemetricFlowmeterForm(forms.Form):
     telemetric_system_type = forms.ChoiceField(
+        label=_("Telemetric system type"),
         choices=[
             ("NO_SYSTEM", _("No telemetric system")),
             ("LoRA_ARTA", _("LoRA_ARTA")),
         ],
         initial="NO_SYSTEM",
     )
-    device_id = forms.CharField(max_length=64, strip=True, required=False)
+    device_id = forms.CharField(
+        label=_("Device id"), max_length=64, strip=True, required=False
+    )
     water_percentage = forms.IntegerField(
-        label="Percentage of water that corresponds to the flowmeter (%)",
+        label=_("Percentage of water that corresponds to the flowmeter (%)"),
         min_value=0,
         max_value=100,
         required=False,
