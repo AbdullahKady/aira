@@ -391,24 +391,24 @@ class Agrifield(models.Model, AgrifieldSWBMixin, AgrifieldSWBResultsMixin):
 
     def _get_applied_irrigation_defaults_for_duration(self):
         try:
-            duration_irr = self.appliedirrigation_set.filter(
+            latest_entry = self.appliedirrigation_set.filter(
                 irrigation_type="DURATION_OF_IRRIGATION"
             ).latest()
             return {
-                "supplied_duration": duration_irr.supplied_duration,
-                "supplied_flow_rate": duration_irr.supplied_flow_rate,
+                "supplied_duration": latest_entry.supplied_duration,
+                "supplied_flow_rate": latest_entry.supplied_flow_rate,
             }
         except AppliedIrrigation.DoesNotExist:
             return {}
 
     def _get_applied_irrigation_defaults_for_flowmeter(self):
         try:
-            flow_irr = self.appliedirrigation_set.filter(
+            latest_entry = self.appliedirrigation_set.filter(
                 irrigation_type="FLOWMETER_READINGS"
             ).latest()
             return {
-                "flowmeter_water_percentage": flow_irr.flowmeter_water_percentage,
-                "flowmeter_reading_start": flow_irr.flowmeter_reading_end,
+                "flowmeter_water_percentage": latest_entry.flowmeter_water_percentage,
+                "flowmeter_reading_start": latest_entry.flowmeter_reading_end,
             }
         except AppliedIrrigation.DoesNotExist:
             return {}
