@@ -106,7 +106,7 @@ class AppliedIrrigationForm(forms.ModelForm):
             "flowmeter_reading_start": _("Flowmeter reading at start of irrigation"),
             "flowmeter_reading_end": _("Flowmeter reading at end of irrigation"),
             "flowmeter_water_percentage": _(
-                "Percentage of water that corresponds to this field (%)"
+                "Percentage of water that corresponds to the flowmeter (%)"
             ),
         }
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-04 10:03+0300\n"
+"POT-Creation-Date: 2020-06-27 01:21+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -167,9 +167,9 @@ msgstr "Ένδειξη υδρομέτρου στην αρχή της άρδευ�
 msgid "Flowmeter reading at end of irrigation"
 msgstr "Ένδειξη υδρομέτρου στο τέλος της άρδευσης"
 
-#: aira/forms.py:109
-msgid "Percentage of water that corresponds to this field (%)"
-msgstr "Ποσοστό νερού που αντιστοιχεί σ' αυτό το αγροτεμάχιο (%)"
+#: aira/forms.py:149
+msgid "Percentage of water that corresponds to the flowmeter (%)"
+msgstr "Ποσοστό νερού που αντιστοιχεί στο υδρόμετρο (%)"
 
 #: aira/forms.py:133 aira/forms.py:172
 msgid "This field is required."
@@ -190,10 +190,6 @@ msgstr ""
 #: aira/forms.py:146
 msgid "Device id"
 msgstr "Κωδικός συσκευής"
-
-#: aira/forms.py:149
-msgid "Percentage of water that corresponds to the flowmeter (%)"
-msgstr "Ποσοστό νερού που αντιστοιχεί στο υδρόμετρο (%)"
 
 #: aira/forms.py:181
 msgid "Are you human?"

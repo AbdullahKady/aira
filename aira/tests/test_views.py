@@ -463,9 +463,7 @@ class RemoveSupervisedUserTestCase(TestDataMixin, TestCase):
         self.client.login(username="alice", password="topsecret")
         response = self.client.get("/home/")
         self.assertContains(
-            response,
-            '<a href="/home/bob/">bob (Bob Brown)</a>'.format(self.bob.id),
-            html=True,
+            response, '<a href="/home/bob/">bob (Bob Brown)</a>', html=True
         )
 
     def test_remove_bob_from_supervised(self):
