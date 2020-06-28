@@ -139,6 +139,7 @@ class AgrifieldTelemetricFlowmeterForm(forms.ModelForm):
     static. Note that the "telemetric_flowmeter_details_fields" should change
     dynamically with the addition of new flowmeter types.
     """
+
     device_id = forms.CharField(max_length=64, strip=True, required=False)
     water_percentage = forms.IntegerField(min_value=0, max_value=100, required=False)
 
