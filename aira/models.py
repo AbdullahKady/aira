@@ -7,6 +7,7 @@ from glob import iglob
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import JSONField
 from django.core.cache import cache
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -139,6 +140,11 @@ class SoilAnalysisStorage(FileSystemStorage):
 
 
 class Agrifield(models.Model, AgrifieldSWBMixin, AgrifieldSWBResultsMixin):
+
+    FLOWMETER_TYPES = [
+        ("LoRA_ARTA", _("LoRA_ARTA")),
+    ]
+
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255, default="i.e. MyField1")
     is_virtual = models.NullBooleanField(
@@ -197,6 +203,10 @@ class Agrifield(models.Model, AgrifieldSWBMixin, AgrifieldSWBResultsMixin):
     soil_analysis = models.FileField(
         blank=True, storage=SoilAnalysisStorage(), upload_to="soil_analyses"
     )
+    telemetric_flowmeter_type = models.CharField(
+        max_length=30, choices=FLOWMETER_TYPES, null=True, blank=True
+    )
+    telemetric_flowmeter_details = JSONField(null=True, blank=True)
 
     @property
     def wilting_point(self):

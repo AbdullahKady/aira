@@ -66,9 +66,9 @@ urlpatterns = [
         name="delete_irrlog",
     ),
     path(
-        "create_telemtricflowmeter/<int:pk>/",
-        views.CreateTelemetricFlowmeterView.as_view(),
-        name="create_telemetricflowmeter",
+        "update_agrifield_telemetricflowmeter/<int:pk>/",
+        views.UpdateAgrifieldTelemetricFlowmeterView.as_view(),
+        name="update_agrifield_telemetricflowmeter",
     ),
     path("conversion_tools/", views.ConversionToolsView.as_view(), name="tools",),
     path("try/", views.DemoView.as_view(), name="try"),

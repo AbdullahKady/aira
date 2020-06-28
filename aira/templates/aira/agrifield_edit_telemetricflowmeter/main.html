@@ -59,10 +59,9 @@
                 input.setAttribute("required", "");
             });
         }
-        function onTelemetricSystemChanged(_) {
-            const selectedType = document.querySelector('select#id_telemetric_system_type').value;
+        function onTelemetricFlowmeterTypeChanged(_) {
+            const selectedType = document.querySelector('select#id_telemetric_flowmeter_type').value;
             const fieldsPerType = {
-                NO_SYSTEM: [],
                 LoRA_ARTA: ["device_id", "water_percentage"],
             };
             for (const type in fieldsPerType) {
@@ -74,10 +73,10 @@
             }
         }
 
-        document.querySelector('select#id_telemetric_system_type')
-            .addEventListener("change", onTelemetricSystemChanged)
+        document.querySelector('select#id_telemetric_flowmeter_type')
+            .addEventListener("change", onTelemetricFlowmeterTypeChanged)
 
-        onTelemetricSystemChanged(); // Called once at the start to display fields according to default choice
+        onTelemetricFlowmeterTypeChanged(); // Called once at the start to display fields according to default choice
         // The following line is to avoid a flashing form on first load
         document.querySelector('div.container form.form-horizontal').style.display = "";
     })()

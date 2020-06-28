@@ -21,7 +21,7 @@ from .forms import (
     AgrifieldForm,
     AppliedIrrigationForm,
     ProfileForm,
-    TelemetricFlowmeterForm,
+    AgrifieldTelemetricFlowmeterForm,
 )
 from .models import Agrifield, AppliedIrrigation, Profile
 
@@ -356,21 +356,11 @@ class DownloadSoilAnalysisView(LoginRequiredMixin, View):
         return FileResponse(agrifield.soil_analysis, as_attachment=True)
 
 
-class CreateTelemetricFlowmeterView(LoginRequiredMixin, FormView):
-    form_class = TelemetricFlowmeterForm
-    success_url = "/home"
-    template_name = 'aira/telemetricflowmeter/create.html'
+class UpdateAgrifieldTelemetricFlowmeterView(LoginRequiredMixin, UpdateView):
+    model = Agrifield
+    form_class = AgrifieldTelemetricFlowmeterForm
+    template_name = "aira/agrifield_edit_telemetricflowmeter/main.html"
 
     def get_success_url(self):
         field = Agrifield.objects.get(pk=self.kwargs["pk"])
         return reverse("home", kwargs={"username": field.owner})
-
-    def dispatch(self, request, *args, **kwargs):
-        self.agrifield = get_object_or_404(Agrifield, pk=self.kwargs["pk"])
-        self.agrifield.can_edit(request.user)
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["agrifield"] = self.agrifield
-        return context
