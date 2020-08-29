@@ -10,9 +10,9 @@ def map(request):
     map_js = (
         """
         aira.thunderforestApiKeyQueryElement = "{}";
-        aira.mapserver_base_url = "{}";
-        aira.map_default_center = [{}];
-        aira.map_default_zoom = {};
+        aira.mapserverBaseUrl = "{}";
+        aira.mapDefaultCenter = [{}];
+        aira.mapDefaultZoom = {};
         aira.strings = {{ covered_area: "{}" }};
         """
     ).format(
