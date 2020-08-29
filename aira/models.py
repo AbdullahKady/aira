@@ -9,7 +9,6 @@ from io import StringIO
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.gis.db import models
-from django.contrib.postgres.fields import JSONField
 from django.core.cache import cache
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -501,12 +500,8 @@ class TelemetricFlowmeter(models.Model):
     water_percentage = models.PositiveIntegerField(
         null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(100)]
     )
-    conversion_rate = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True, default=6.8
-    )
-    report_duration_in_minutes = models.PositiveSmallIntegerField(
-        null=True, blank=True, default=5
-    )
+    conversion_rate = models.DecimalField(max_digits=5, decimal_places=2, default=6.8)
+    report_duration_in_minutes = models.PositiveSmallIntegerField(default=5)
 
 
 class AppliedIrrigation(models.Model):
