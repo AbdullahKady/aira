@@ -150,3 +150,6 @@ if os.environ.get("SELENIUM_BROWSER", False):
             "kwargs": {},
         }
     }
+
+THE_THINGS_NETWORK_ACCESS_KEY = ""
+THE_THINGS_NETWORK_QUERY_URL = ""
