@@ -1,5 +1,6 @@
 import csv
 import datetime as dt
+import json
 import os
 from glob import glob
 
@@ -370,7 +371,14 @@ class CreateTelemetricFlowmeterView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
-        return {**super().get_context_data(**kwargs), "agrifield": self.agrifield}
+        # Dump the mapper so JS can hide/show fields according to the type.
+        return {
+            **super().get_context_data(**kwargs),
+            "agrifield": self.agrifield,
+            "REQUIRED_FIELDS_PER_TYPE": json.dumps(
+                TelemetricFlowmeter.REQUIRED_FIELDS_PER_TYPE
+            ),
+        }
 
     def get_success_url(self):
         return reverse("home", kwargs={"username": self.agrifield.owner})

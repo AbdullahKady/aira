@@ -38,7 +38,6 @@
 
     (function() {
         function getFormGroupElement(inputElement) {
-            console.log(inputElement)
             // Handles the case when an input is nested in another div inside the form group
             if (inputElement.parentElement.className.includes("form-group")) {
                 return inputElement.parentElement;
@@ -61,10 +60,8 @@
         }
         function onTelemetricFlowmeterTypeChanged(_) {
             const selectedType = document.querySelector('select#id_system_type').value;
-            // TODO: Interpolate the following mapper from Django
-            const fieldsPerType = {
-                LoRA_ARTA: ["device_id", "water_percentage"],
-            };
+
+            const fieldsPerType = JSON.parse('{{ REQUIRED_FIELDS_PER_TYPE|safe }}');
             for (const type in fieldsPerType) {
                 if (type === selectedType) {
                     showFields(fieldsPerType[type]);

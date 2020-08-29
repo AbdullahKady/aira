@@ -473,19 +473,39 @@ class AgrifieldCustomKcStage(KcStage):
 
 
 class TelemetricFlowmeter(models.Model):
+    """
+    NOTE: The use of default/initial values for fields such as `conversion_rate` will
+    create unnecessary data in the db. Example, if we have a new type X that doesn't
+    use the `conversion_rate`, it won't be shown to the user but it will be saved as
+    the default value anyway.
+    """
+
     FLOWMETER_TYPES = [
         ("LoRA_ARTA", _("LoRA_ARTA")),
     ]
 
-    REQUIRED_FIELDS_PER_TYPE = {"LoRA_ARTA": ["device_id", "water_percentage"]}
+    REQUIRED_FIELDS_PER_TYPE = {
+        "LoRA_ARTA": [
+            "device_id",
+            "water_percentage",
+            "conversion_rate",
+            "report_duration_in_minutes",
+        ]
+    }
 
     agrifield = models.ForeignKey(Agrifield, on_delete=models.CASCADE)
     system_type = models.CharField(
-        max_length=30, choices=FLOWMETER_TYPES, default='LoRA_ARTA'
+        max_length=30, choices=FLOWMETER_TYPES, default="LoRA_ARTA"
     )
     device_id = models.CharField(max_length=100, null=True, blank=True)
     water_percentage = models.PositiveIntegerField(
         null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(100)]
+    )
+    conversion_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True, default=6.8
+    )
+    report_duration_in_minutes = models.PositiveSmallIntegerField(
+        null=True, blank=True, default=5
     )
 
 
