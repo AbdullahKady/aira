@@ -12,6 +12,7 @@ from django.contrib.gis.db import models
 from django.core.cache import cache
 from django.core.files.storage import FileSystemStorage
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db.models import Q, UniqueConstraint
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.http import Http404
@@ -488,7 +489,7 @@ class TelemetricFlowmeter(models.Model):
             "device_id",
             "water_percentage",
             "conversion_rate",
-            "report_duration_in_minutes",
+            "report_frequency_in_minutes",
         ]
     }
 
@@ -501,7 +502,7 @@ class TelemetricFlowmeter(models.Model):
         null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(100)]
     )
     conversion_rate = models.DecimalField(max_digits=5, decimal_places=2, default=6.8)
-    report_duration_in_minutes = models.PositiveSmallIntegerField(default=5)
+    report_frequency_in_minutes = models.PositiveSmallIntegerField(default=5)
 
 
 class AppliedIrrigation(models.Model):
@@ -514,6 +515,9 @@ class AppliedIrrigation(models.Model):
 
     irrigation_type = models.CharField(
         max_length=50, choices=IRRIGATION_TYPES, default="VOLUME_OF_WATER"
+    )
+    is_flowmeter_reported = models.BooleanField(
+        verbose_name="Is automatically added by a flowmeter integration", default=False,
     )
     agrifield = models.ForeignKey(Agrifield, on_delete=models.CASCADE)
     timestamp = models.DateTimeField()
@@ -570,6 +574,13 @@ class AppliedIrrigation(models.Model):
     class Meta:
         get_latest_by = "timestamp"
         ordering = ("-timestamp",)
+        constraints = [
+            UniqueConstraint(
+                fields=["supplied_water_volume", "timestamp"],
+                condition=Q(is_flowmeter_reported=True),
+                name="unique_automatic_flowmeter_irrigations",
+            )
+        ]
 
     def __str__(self):
         return str(self.timestamp)

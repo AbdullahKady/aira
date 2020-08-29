@@ -220,7 +220,7 @@ class TelemetricFlowmeterForm(forms.ModelForm):
             "device_id",
             "water_percentage",
             "conversion_rate",
-            "report_duration_in_minutes",
+            "report_frequency_in_minutes",
         ]
         labels = {
             "system_type": _("Telemetric system type"),
