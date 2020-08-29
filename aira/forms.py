@@ -6,7 +6,7 @@ from captcha.fields import CaptchaField
 from geowidgets import LatLonField
 from registration.forms import RegistrationForm
 
-from .models import Agrifield, AppliedIrrigation, Profile
+from .models import Agrifield, AppliedIrrigation, Profile, TelemetricFlowmeter
 
 
 class ProfileForm(forms.ModelForm):
@@ -133,34 +133,18 @@ class AppliedIrrigationForm(forms.ModelForm):
                 self.add_error(field, _("This field is required."))
 
 
-class AgrifieldTelemetricFlowmeterForm(forms.ModelForm):
+class TelemetricFlowmeterForm(forms.ModelForm):
     """
-    Since the flowmeter types are restricted to a single type for now, the form is
-    static. Note that the "telemetric_flowmeter_details_fields" should change
-    dynamically with the addition of new flowmeter types.
+    Using the REQUIRED_FIELDS_PER_TYPE mapper, the required fields are dynamic
+    depending on the submitted flowmeter type.
     """
-
-    device_id = forms.CharField(max_length=64, strip=True, required=False)
-    water_percentage = forms.IntegerField(min_value=0, max_value=100, required=False)
-
-    def __init__(self, *args, **kwargs):
-        self.telemetric_flowmeter_details_fields = ["device_id", "water_percentage"]
-        # Provide initial values for fields nested in "telemetric_flowmeter_details"
-        instance = kwargs.get("instance", None)
-        if instance.telemetric_flowmeter_details:
-            kwargs.update(initial=instance.telemetric_flowmeter_details)
-        super().__init__(*args, **kwargs)
 
     def clean(self):
         cleaned_data = super().clean()
-
-        if cleaned_data.get("telemetric_flowmeter_type") == "LoRA_ARTA":
-            self._validate_required(self.telemetric_flowmeter_details_fields)
-
+        system_type = cleaned_data.get("system_type")
+        required_fields = TelemetricFlowmeter.REQUIRED_FIELDS_PER_TYPE[system_type]
+        self._validate_required(required_fields)
         return super().clean()
-
-    def clean_telemetric_flowmeter_details(self):
-        return {k: self.data[k] for k in self.telemetric_flowmeter_details_fields}
 
     def _validate_required(self, fields=[]):
         for field in fields:
@@ -168,16 +152,14 @@ class AgrifieldTelemetricFlowmeterForm(forms.ModelForm):
                 self.add_error(field, _("This field is required."))
 
     class Meta:
-        model = Agrifield
+        model = TelemetricFlowmeter
         fields = [
-            "telemetric_flowmeter_type",
-            "telemetric_flowmeter_details",
+            "system_type",
             "device_id",
             "water_percentage",
         ]
-        widgets = {"telemetric_flowmeter_details": forms.HiddenInput()}
         labels = {
-            "telemetric_flowmeter_type": _("Telemetric system type"),
+            "system_type": _("Telemetric system type"),
             "device_id": _("Device id"),
             "water_percentage": _(
                 "Percentage of water that corresponds to the flowmeter (%)"

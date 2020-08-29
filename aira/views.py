@@ -10,20 +10,20 @@ from django.contrib.auth.models import User
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
+from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView, View
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView, FormView
-
 import pandas as pd
 
 from .forms import (
     AgrifieldForm,
     AppliedIrrigationForm,
     ProfileForm,
-    AgrifieldTelemetricFlowmeterForm,
+    TelemetricFlowmeterForm,
 )
-from .models import Agrifield, AppliedIrrigation, Profile
+from .models import Agrifield, AppliedIrrigation, Profile, TelemetricFlowmeter
 
 
 class IrrigationPerformanceView(DetailView):
@@ -356,11 +356,21 @@ class DownloadSoilAnalysisView(LoginRequiredMixin, View):
         return FileResponse(agrifield.soil_analysis, as_attachment=True)
 
 
-class UpdateAgrifieldTelemetricFlowmeterView(LoginRequiredMixin, UpdateView):
-    model = Agrifield
-    form_class = AgrifieldTelemetricFlowmeterForm
-    template_name = "aira/agrifield_edit_telemetricflowmeter/main.html"
+class CreateTelemetricFlowmeterView(LoginRequiredMixin, CreateView):
+    model = TelemetricFlowmeter
+    form_class = TelemetricFlowmeterForm
+    template_name = "aira/create_telemetricflowmeter/main.html"
+
+    @cached_property
+    def agrifield(self):
+        return get_object_or_404(Agrifield, pk=self.kwargs["agrifield_pk"])
+
+    def form_valid(self, form):
+        form.instance.agrifield = self.agrifield
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        return {**super().get_context_data(**kwargs), "agrifield": self.agrifield}
 
     def get_success_url(self):
-        field = Agrifield.objects.get(pk=self.kwargs["pk"])
-        return reverse("home", kwargs={"username": field.owner})
+        return reverse("home", kwargs={"username": self.agrifield.owner})

@@ -60,7 +60,8 @@
             });
         }
         function onTelemetricFlowmeterTypeChanged(_) {
-            const selectedType = document.querySelector('select#id_telemetric_flowmeter_type').value;
+            const selectedType = document.querySelector('select#id_system_type').value;
+            // TODO: Interpolate the following mapper from Django
             const fieldsPerType = {
                 LoRA_ARTA: ["device_id", "water_percentage"],
             };
@@ -73,7 +74,7 @@
             }
         }
 
-        document.querySelector('select#id_telemetric_flowmeter_type')
+        document.querySelector('select#id_system_type')
             .addEventListener("change", onTelemetricFlowmeterTypeChanged)
 
         onTelemetricFlowmeterTypeChanged(); // Called once at the start to display fields according to default choice

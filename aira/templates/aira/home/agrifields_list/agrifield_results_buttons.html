@@ -4,7 +4,7 @@
   <a class="btn btn-success btn-xs" href="{% url 'create_irrlog' pk=f.id %}">
     <i class="fa fa-plus-square-o"></i>&nbsp;<i class="fa fa-minus-square-o"></i>&nbsp; {% trans "Irrigations applied" %}
   </a>
-  <a class="btn btn-success btn-xs" href="{% url 'update_agrifield_telemetricflowmeter' pk=f.id %}">
+  <a class="btn btn-success btn-xs" href="{% url 'create_telemetric_flowmeter' agrifield_pk=f.id %}">
     <i class="fa fa-plus-square-o"></i>&nbsp;<i class="fa fa-minus-square-o"></i>&nbsp; {% trans "Telemetry" %}
   </a>
   <a class="btn btn-success btn-xs" href="{% url 'recommendation' f.id %}">

@@ -140,11 +140,6 @@ class SoilAnalysisStorage(FileSystemStorage):
 
 
 class Agrifield(models.Model, AgrifieldSWBMixin, AgrifieldSWBResultsMixin):
-
-    FLOWMETER_TYPES = [
-        ("LoRA_ARTA", _("LoRA_ARTA")),
-    ]
-
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255, default="i.e. MyField1")
     is_virtual = models.NullBooleanField(
@@ -203,10 +198,6 @@ class Agrifield(models.Model, AgrifieldSWBMixin, AgrifieldSWBResultsMixin):
     soil_analysis = models.FileField(
         blank=True, storage=SoilAnalysisStorage(), upload_to="soil_analyses"
     )
-    telemetric_flowmeter_type = models.CharField(
-        max_length=30, choices=FLOWMETER_TYPES, null=True, blank=True
-    )
-    telemetric_flowmeter_details = JSONField(null=True, blank=True)
 
     @property
     def wilting_point(self):
@@ -422,6 +413,23 @@ class Agrifield(models.Model, AgrifieldSWBMixin, AgrifieldSWBResultsMixin):
             }
         except AppliedIrrigation.DoesNotExist:
             return {}
+
+
+class TelemetricFlowmeter(models.Model):
+    FLOWMETER_TYPES = [
+        ("LoRA_ARTA", _("LoRA_ARTA")),
+    ]
+
+    REQUIRED_FIELDS_PER_TYPE = {"LoRA_ARTA": ["device_id", "water_percentage"]}
+
+    agrifield = models.ForeignKey(Agrifield, on_delete=models.CASCADE)
+    system_type = models.CharField(
+        max_length=30, choices=FLOWMETER_TYPES, default='LoRA_ARTA'
+    )
+    device_id = models.CharField(max_length=100, null=True, blank=True)
+    water_percentage = models.PositiveIntegerField(
+        null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(100)]
+    )
 
 
 class AppliedIrrigation(models.Model):
