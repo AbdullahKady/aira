@@ -492,7 +492,7 @@ class TelemetricFlowmeter(models.Model):
         ]
     }
 
-    agrifield = models.ForeignKey(Agrifield, on_delete=models.CASCADE)
+    agrifield = models.OneToOneField(Agrifield, on_delete=models.CASCADE)
     system_type = models.CharField(
         max_length=30, choices=FLOWMETER_TYPES, default="LoRA_ARTA"
     )
