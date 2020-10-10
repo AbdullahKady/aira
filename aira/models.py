@@ -581,9 +581,8 @@ class LoRA_ARTAFlowmeter(TelemetricFlowmeter):
     report_frequency_in_minutes = models.PositiveSmallIntegerField(default=5)
 
     def _calculate_water_volume(self, point):
-        # TODO: Do we need the water percentage anymore?
         return (
-            Decimal((1 / self.water_percentage))
+            Decimal((1 / self.flowmeter_water_percentage))
             * (self.report_frequency_in_minutes * point["SensorFrequency"])
             / self.conversion_rate
         )
