@@ -473,33 +473,17 @@ class AgrifieldCustomKcStage(KcStage):
 
 
 class TelemetricFlowmeter(models.Model):
-    """
-    NOTE: The use of default/initial values for fields such as `conversion_rate` will
-    create unnecessary data in the db. Example, if we have a new type X that doesn't
-    use the `conversion_rate`, it won't be shown to the user but it will be saved as
-    the default value anyway.
-    """
-
-    FLOWMETER_TYPES = [
-        ("LoRA_ARTA", _("LoRA_ARTA")),
-    ]
-
-    REQUIRED_FIELDS_PER_TYPE = {
-        "LoRA_ARTA": [
-            "device_id",
-            "water_percentage",
-            "conversion_rate",
-            "report_frequency_in_minutes",
-        ]
-    }
-
     agrifield = models.OneToOneField(Agrifield, on_delete=models.CASCADE)
-    system_type = models.CharField(
-        max_length=30, choices=FLOWMETER_TYPES, default="LoRA_ARTA"
-    )
-    device_id = models.CharField(max_length=100, null=True, blank=True)
-    water_percentage = models.PositiveIntegerField(
-        null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(100)]
+
+    class Meta:
+        abstract = True
+
+
+class LoRA_ARTAFlowmeter(TelemetricFlowmeter):
+    device_id = models.CharField(max_length=100)
+    flowmeter_water_percentage = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(100)],
+        help_text=_("Percentage of water that corresponds to the flowmeter (%)"),
     )
     conversion_rate = models.DecimalField(max_digits=5, decimal_places=2, default=6.8)
     report_frequency_in_minutes = models.PositiveSmallIntegerField(default=5)
@@ -516,8 +500,9 @@ class AppliedIrrigation(models.Model):
     irrigation_type = models.CharField(
         max_length=50, choices=IRRIGATION_TYPES, default="VOLUME_OF_WATER"
     )
-    is_flowmeter_reported = models.BooleanField(
-        verbose_name="Is automatically added by a flowmeter integration", default=False,
+    is_measured_automatically = models.BooleanField(
+        verbose_name=_("Is automatically added by a flowmeter integration"),
+        default=False,
     )
     agrifield = models.ForeignKey(Agrifield, on_delete=models.CASCADE)
     timestamp = models.DateTimeField()
@@ -577,7 +562,7 @@ class AppliedIrrigation(models.Model):
         constraints = [
             UniqueConstraint(
                 fields=["supplied_water_volume", "timestamp"],
-                condition=Q(is_flowmeter_reported=True),
+                condition=Q(is_measured_automatically=True),
                 name="unique_automatic_flowmeter_irrigations",
             )
         ]

@@ -8,7 +8,7 @@ from captcha.fields import CaptchaField
 from geowidgets import LatLonField
 from registration.forms import RegistrationForm
 
-from .models import Agrifield, AppliedIrrigation, Profile, TelemetricFlowmeter
+from .models import Agrifield, AppliedIrrigation, Profile, LoRA_ARTAFlowmeter
 
 
 class ProfileForm(forms.ModelForm):
@@ -195,40 +195,15 @@ class AppliedIrrigationForm(forms.ModelForm):
                 self.add_error(field, _("This field is required."))
 
 
-class TelemetricFlowmeterForm(forms.ModelForm):
-    """
-    Using the REQUIRED_FIELDS_PER_TYPE mapper, the required fields are dynamic
-    depending on the submitted flowmeter type.
-    """
-
-    def clean(self):
-        cleaned_data = super().clean()
-        system_type = cleaned_data.get("system_type")
-        required_fields = TelemetricFlowmeter.REQUIRED_FIELDS_PER_TYPE[system_type]
-        self._validate_required(required_fields)
-        return super().clean()
-
-    def _validate_required(self, fields=[]):
-        for field in fields:
-            if self.cleaned_data.get(field, None) is None:
-                self.add_error(field, _("This field is required."))
-
+class LoRA_ARTAFlowmeterForm(forms.ModelForm):
     class Meta:
-        model = TelemetricFlowmeter
+        model = LoRA_ARTAFlowmeter
         fields = [
-            "system_type",
             "device_id",
-            "water_percentage",
+            "flowmeter_water_percentage",
             "conversion_rate",
             "report_frequency_in_minutes",
         ]
-        labels = {
-            "system_type": _("Telemetric system type"),
-            "device_id": _("Device id"),
-            "water_percentage": _(
-                "Percentage of water that corresponds to the flowmeter (%)"
-            ),
-        }
 
 
 class MyRegistrationForm(RegistrationForm):
