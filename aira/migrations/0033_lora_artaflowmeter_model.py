@@ -27,12 +27,8 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='appliedirrigation',
-            name='is_measured_automatically',
+            name='is_automatically_reported',
             field=models.BooleanField(default=False, verbose_name='Is automatically added by a flowmeter integration'),
-        ),
-        migrations.AddConstraint(
-            model_name='appliedirrigation',
-            constraint=models.UniqueConstraint(condition=models.Q(is_measured_automatically=True), fields=('supplied_water_volume', 'timestamp'), name='unique_automatic_flowmeter_irrigations'),
         ),
         migrations.AddField(
             model_name='lora_artaflowmeter',

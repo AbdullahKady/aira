@@ -500,7 +500,7 @@ class AppliedIrrigation(models.Model):
     irrigation_type = models.CharField(
         max_length=50, choices=IRRIGATION_TYPES, default="VOLUME_OF_WATER"
     )
-    is_measured_automatically = models.BooleanField(
+    is_automatically_reported = models.BooleanField(
         verbose_name=_("Is automatically added by a flowmeter integration"),
         default=False,
     )
@@ -559,10 +559,11 @@ class AppliedIrrigation(models.Model):
     class Meta:
         get_latest_by = "timestamp"
         ordering = ("-timestamp",)
+        # For automated reporting, avoid duplicated data points.
         constraints = [
             UniqueConstraint(
-                fields=["supplied_water_volume", "timestamp"],
-                condition=Q(is_measured_automatically=True),
+                fields=["supplied_water_volume", "timestamp", "agrifield"],
+                condition=Q(is_automatically_reported=True),
                 name="unique_automatic_flowmeter_irrigations",
             )
         ]
