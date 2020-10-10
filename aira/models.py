@@ -1,5 +1,6 @@
 import csv
 import datetime as dt
+from decimal import Decimal
 import math
 import os
 from collections import OrderedDict
@@ -472,23 +473,6 @@ class AgrifieldCustomKcStage(KcStage):
     agrifield = models.ForeignKey(Agrifield, on_delete=models.CASCADE)
 
 
-class TelemetricFlowmeter(models.Model):
-    agrifield = models.OneToOneField(Agrifield, on_delete=models.CASCADE)
-
-    class Meta:
-        abstract = True
-
-
-class LoRA_ARTAFlowmeter(TelemetricFlowmeter):
-    device_id = models.CharField(max_length=100)
-    flowmeter_water_percentage = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(100)],
-        help_text=_("Percentage of water that corresponds to the flowmeter (%)"),
-    )
-    conversion_rate = models.DecimalField(max_digits=5, decimal_places=2, default=6.8)
-    report_frequency_in_minutes = models.PositiveSmallIntegerField(default=5)
-
-
 class AppliedIrrigation(models.Model):
 
     IRRIGATION_TYPES = [
@@ -578,3 +562,50 @@ class AppliedIrrigation(models.Model):
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
         self.agrifield._queue_for_calculation()
+
+
+class TelemetricFlowmeter(models.Model):
+    agrifield = models.OneToOneField(Agrifield, on_delete=models.CASCADE)
+
+    class Meta:
+        abstract = True
+
+
+class LoRA_ARTAFlowmeter(TelemetricFlowmeter):
+    device_id = models.CharField(max_length=100)
+    flowmeter_water_percentage = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(100)],
+        help_text=_("Percentage of water that corresponds to the flowmeter (%)"),
+    )
+    conversion_rate = models.DecimalField(max_digits=5, decimal_places=2, default=6.8)
+    report_frequency_in_minutes = models.PositiveSmallIntegerField(default=5)
+
+    def _calculate_water_volume(self, point):
+        # TODO: Do we need the water percentage anymore?
+        return (
+            Decimal((1 / self.water_percentage))
+            * (self.report_frequency_in_minutes * point["SensorFrequency"])
+            / self.conversion_rate
+        )
+
+    def create_irrigations_in_bulk(self, data_points):
+        kwargs_list = [
+            {
+                "is_flowmeter_reported": True,
+                "irrigation_type": "VOLUME_OF_WATER",
+                "supplied_water_volume": self._calculate_water_volume(point),
+                "agrifield_id": self.agrifield_id,
+                "timestamp": point["time"],
+            }
+            for point in data_points
+        ]
+
+        """
+        NOTE: Using `ignore_conflicts` in case TTN reports duplicate data points either
+        as a problem on their side, or ours. So with a `unique_together` constraint
+        on volume, timestamp, and agrifield, we can skip such points if they appear.
+        """
+        AppliedIrrigation.objects.bulk_create(
+            [AppliedIrrigation(**kwargs) for kwargs in kwargs_list],
+            ignore_conflicts=True,
+        )
