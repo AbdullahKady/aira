@@ -171,19 +171,19 @@ class UpdateAgrifieldViewTestCase(DataTestCase):
             html=True,
         )
 
-    def test_kc_initial(self):
+    def test_kc_plantingdate(self):
         soup = BeautifulSoup(self.response.content, "html.parser")
-        kc_initial_element = soup.find("input", id="id_custom_kc_initial")
-        self.assertEqual(kc_initial_element.get("value"), "0.35")
+        kc_plantingdate_element = soup.find("input", id="id_custom_kc_plantingdate")
+        self.assertEqual(kc_plantingdate_element.get("value"), "0.35")
 
-    def test_kc_initial_placeholder(self):
+    def test_kc_plantingdate_placeholder(self):
         soup = BeautifulSoup(self.response.content, "html.parser")
-        kc_initial_element = soup.find("input", id="id_custom_kc_initial")
-        self.assertEqual(kc_initial_element.get("placeholder"), "0.3 - 1.25")
+        kc_plantingdate_element = soup.find("input", id="id_custom_kc_plantingdate")
+        self.assertEqual(kc_plantingdate_element.get("placeholder"), "0.3 - 1.25")
 
-    def test_default_kc_initial(self):
+    def test_default_kc_plantingdate(self):
         self.assertContains(
-            self.response, '<span id="default-kc_initial">0.7</span>', html=True
+            self.response, '<span id="default-kc_plantingdate">0.7</span>', html=True
         )
 
     def test_kc_offseason(self):
@@ -542,6 +542,21 @@ class RemoveSupervisedUserTestCase(DataTestCase):
         self.assertEqual(response.status_code, 404)
 
 
+class RegistrationViewTestCase(TestCase):
+    def test_template_is_overriden(self):
+        """Test that the correct template is used.
+
+        In INSTALLED_APPS, "aira" has to go before "registration" (which has to go
+        before "django.contrib.admin"), so that the registration templates are read from
+        aira/templates/registration and not from django-registration-redux. This is easy
+        to misconfigure, so we test it here.
+        """
+        response = self.client.get("/accounts/register/")
+        # Check the title. django-registration-redux's default is "Register for an
+        # account"
+        self.assertContains(response, "<title>Registration —")
+
+
 class ProfileViewsTestCase(TestCase):
     def setUp(self):
         self.bob = User.objects.create_user(id=55, username="bob", password="topsecret")
@@ -782,7 +797,7 @@ class IrrigationPerformanceCsvTestCase(DataTestCase):
 
 
 class CreateAppliedIrrigationViewTestCase(TestCase):
-    @patch("aira.models.Agrifield.get_applied_irrigation_defaults",)
+    @patch("aira.models.Agrifield.get_applied_irrigation_defaults")
     def test_applied_irrigation_defaults(self, mock):
         owner = User.objects.create_user(username="bob", password="topsecret")
         self.client.login(username="bob", password="topsecret")
@@ -902,6 +917,29 @@ class AgrifieldEditMapTestCase(SeleniumDataTestCase):
         self.assertNotEqual(new_latitude, original_latitude)
         self.assertNotEqual(new_longitude, original_longitude)
 
+    def test_agrifields_map_in_new_agrifields(self):
+        # Visit user's add agrifield list page
+        r = self.selenium.login(username="bob", password="topsecret")
+        self.assertTrue(r)
+        self.selenium.get(self.live_server_url + "/create_agrifield/bob/")
+        self.map_element.wait_until_exists()
+
+        # Check that latitude and longitude values are empty
+        self.assertEqual(self.latitude_element.get_attribute("value"), "")
+        self.assertEqual(self.longitude_element.get_attribute("value"), "")
+
+        # Click near the left edge of the map
+        x_offset = self.map_element.size["width"] / 2
+        y_offset = 20
+        ActionChains(self.selenium).move_to_element(
+            self.selenium.find_element(By.ID, "map")
+        ).move_by_offset(x_offset, y_offset).click().perform()
+        sleep(0.1)
+
+        # The co-ordinates should have been set
+        self.assertNotEqual(self.latitude_element.get_attribute("value"), "")
+        self.assertNotEqual(self.longitude_element.get_attribute("value"), "")
+
 
 @skipUnless(getattr(settings, "SELENIUM_WEBDRIVERS", False), "Selenium is unconfigured")
 class AddIrrigationTestCase(SeleniumDataTestCase):
@@ -970,3 +1008,27 @@ class AgrifieldsMapPopupTestCase(SeleniumDataTestCase):
         self.map_marker.click()
         self.popup_element.wait_until_exists()
         self.assertTrue(self.popup_element.is_displayed())
+
+
+class ManagementMenuTestCase(TestCase):
+    """Check whether "Management" is translated correctly.
+
+    We have a "Management" menu, but its translation may conflict with a translation
+    from django-registration-redux, so we check that we've used context or whatever
+    alright.
+    """
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            id=55, username="bob", password="topsecret"
+        )
+        self.user.save()
+        r = self.client.login(username="bob", password="topsecret")
+        assert r is True
+
+    def test_management_translation(self):
+        self.client.cookies.load({settings.LANGUAGE_COOKIE_NAME: "el"})
+        response = self.client.get("/")
+        soup = BeautifulSoup(response.content, "html.parser")
+        management_link_element = soup.find("span", id="management-link")
+        self.assertEqual(management_link_element.get_text(), "Διαχείριση")

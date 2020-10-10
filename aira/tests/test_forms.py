@@ -3,7 +3,12 @@ from django.test import TestCase
 from model_mommy import mommy
 
 from aira import models
-from aira.forms import AgrifieldForm, AppliedIrrigationForm, DateInputWithoutYear
+from aira.forms import (
+    AgrifieldForm,
+    AppliedIrrigationForm,
+    DateInputWithoutYear,
+    MyRegistrationForm,
+)
 
 
 class RegistrationFormTestCase(TestCase):
@@ -15,6 +20,23 @@ class RegistrationFormTestCase(TestCase):
     def test_registation_form_fails_blank_submission(self):
         r = self.client.post("/accounts/register/", {})
         self.assertFormError(r, "form", "password1", "This field is required.")
+
+    def test_registration_form_username_help_text(self):
+        """Check that username help_text is not Django's default.
+
+        Django's default username help_text is inappropriate for this, because it starts
+        with the word "Required". This is confusing because actually all form's fields
+        are required.
+        """
+        myform = MyRegistrationForm()
+        self.assertEqual(
+            myform.fields["username"].help_text[:3],
+            "150",  # "150 characters or less..."
+        )
+
+    def test_registration_form_requires_agreement_to_tos(self):
+        r = self.client.get("/accounts/register/")
+        self.assertContains(r, "I have read and agree to the Terms of Service")
 
 
 class AppliedIrrigationFormTestCase(TestCase):
@@ -111,7 +133,7 @@ class AgrifieldFormCleanKcStagesTestCase(TestCase):
 
     def test_validation_error_when_kc_end_is_absent(self):
         self._check_validation_error(
-            kc_stages="15", expected_message='"15" is not a valid (ndays, kc_end) pair',
+            kc_stages="15", expected_message='"15" is not a valid (ndays, kc_end) pair'
         )
 
     def test_validation_error_when_kc_end_is_wrong(self):
@@ -120,18 +142,39 @@ class AgrifieldFormCleanKcStagesTestCase(TestCase):
             expected_message='"15, a" is not a valid (ndays, kc_end) pair',
         )
 
+    def test_validation_error_when_using_commas_as_field_delimiter(self):
+        self._check_validation_error(
+            kc_stages="15,0.9",
+            expected_message='"15,0.9" is not a valid (ndays, kc_end) pair',
+        )
+
     def test_validates_when_correct_data_with_tabs(self):
         self.post_data["kc_stages"] = "15\t0.9"
         form = AgrifieldForm(self.post_data, instance=self.agrifield)
         self.assertTrue(form.is_valid())
 
-    def test_validates_when_correct_data_with_commas(self):
-        self.post_data["kc_stages"] = "15, 0.9"
+    def test_validates_when_correct_data_with_spaces_and_tabs(self):
+        self.post_data["kc_stages"] = "15\t0.9\n25 0.8"
         form = AgrifieldForm(self.post_data, instance=self.agrifield)
         self.assertTrue(form.is_valid())
 
-    def test_validates_when_correct_data_with_commas_and_tabs(self):
-        self.post_data["kc_stages"] = "15\t0.9\n25, 0.8"
+    def test_validates_when_correct_data_with_many_spaces(self):
+        self.post_data["kc_stages"] = "15\t\t0.9\n25  0.8"
+        form = AgrifieldForm(self.post_data, instance=self.agrifield)
+        self.assertTrue(form.is_valid())
+
+    def test_validates_when_leading_and_trailing_spaces(self):
+        self.post_data["kc_stages"] = "   15 0.9\t\t\t\n\t\t25 0.8   "
+        form = AgrifieldForm(self.post_data, instance=self.agrifield)
+        self.assertTrue(form.is_valid())
+
+    def test_validates_when_leading_and_trailing_newlines(self):
+        self.post_data["kc_stages"] = "\n\n15 0.9\n25 0.8\n\n"
+        form = AgrifieldForm(self.post_data, instance=self.agrifield)
+        self.assertTrue(form.is_valid())
+
+    def test_validates_when_correct_data_with_comma_as_decimal_delimiter(self):
+        self.post_data["kc_stages"] = "15 0,9\n25 0,8"
         form = AgrifieldForm(self.post_data, instance=self.agrifield)
         self.assertTrue(form.is_valid())
 

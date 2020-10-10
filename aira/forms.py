@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from captcha.fields import CaptchaField
 from geowidgets import LatLonField
-from registration.forms import RegistrationForm
+from registration.forms import RegistrationFormTermsOfService
 
 from .models import Agrifield, AppliedIrrigation, Profile, LoRA_ARTAFlowmeter
 
@@ -57,7 +57,7 @@ class AgrifieldForm(forms.ModelForm):
             "The development stages. You can copy/paste them from a spreadsheet, "
             "two columns: stage length in days and Kc at end of stage. Copy and paste "
             "the points only, without headings. If you key them in instead, they must "
-            "be one stage per line, first days then Kc, separated by tab or comma."
+            "be one stage per line, first days then Kc, separated by space or tab."
         ),
     )
 
@@ -74,7 +74,7 @@ class AgrifieldForm(forms.ModelForm):
             "use_custom_parameters",
             "custom_planting_date",
             "custom_kc_offseason",
-            "custom_kc_initial",
+            "custom_kc_plantingdate",
             "kc_stages",
             "custom_irrigation_optimizer",
             "custom_root_depth_max",
@@ -96,7 +96,7 @@ class AgrifieldForm(forms.ModelForm):
             "use_custom_parameters": _("Use custom parameters"),
             "custom_planting_date": _("Planting date"),
             "custom_kc_offseason": _("Kc off-season"),
-            "custom_kc_initial": _("Kc initial"),
+            "custom_kc_plantingdate": _("Kc on planting date"),
             "kc_stages": _("Kc stages"),
             "custom_irrigation_optimizer": _("Irrigation optimizer"),
             "custom_root_depth_max": _("Estimated root depth (max)"),
@@ -120,11 +120,11 @@ class AgrifieldForm(forms.ModelForm):
     def clean_kc_stages(self):
         data = self.cleaned_data["kc_stages"]
         for i, row in enumerate(StringIO(data)):
-            row = row.replace("\t", ",")
+            row = row.replace("\t", " ")
             try:
-                items = row.split(",")
+                items = row.split()
                 int(items[0])
-                float(items[1])
+                float(items[1].replace(",", "."))
             except (ValueError, IndexError):
                 raise forms.ValidationError(
                     _(
@@ -206,10 +206,11 @@ class LoRA_ARTAFlowmeterForm(forms.ModelForm):
         ]
 
 
-class MyRegistrationForm(RegistrationForm):
-
-    """
-    Extension of the default registration form to include a captcha
-    """
-
+class MyRegistrationForm(RegistrationFormTermsOfService):
     captcha = CaptchaField(label=_("Are you human?"))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["username"].help_text = _(
+            "150 characters or fewer. Letters, digits and @/./+/-/_ only."
+        )
