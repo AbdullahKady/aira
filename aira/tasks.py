@@ -48,7 +48,6 @@ def _request_the_things_network_digest(since="1d"):
     headers = {"Authorization": f"key {settings.THE_THINGS_NETWORK_ACCESS_KEY}"}
     url = f"{settings.THE_THINGS_NETWORK_QUERY_URL}?last={since}"
     response = requests.get(url, headers=headers)
-    if response.status_code != 200:
-        raise Exception()
+    response.raise_for_status()
     filtered_data = [d for d in response.json() if d["SensorFrequency"] is not None]
     return group_by_key_value(filtered_data, "device_id")
