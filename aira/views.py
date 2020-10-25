@@ -280,6 +280,7 @@ class CreateAppliedIrrigationView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.agrifield = Agrifield.objects.get(pk=self.kwargs["pk"])
+        form.instance.is_automatically_reported = False
         return super().form_valid(form)
 
     def dispatch(self, request, *args, **kwargs):
@@ -303,6 +304,10 @@ class UpdateAppliedIrrigationView(LoginRequiredMixin, UpdateView):
     model = AppliedIrrigation
     form_class = AppliedIrrigationForm
     template_name_suffix = "/update"
+
+    def form_valid(self, form):
+        form.instance.is_automatically_reported = False
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse("home", kwargs={"username": self.object.agrifield.owner})

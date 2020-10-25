@@ -159,7 +159,7 @@ class AppliedIrrigationForm(forms.ModelForm):
 
     class Meta:
         model = AppliedIrrigation
-        exclude = ("agrifield",)
+        exclude = ("agrifield", "is_automatically_reported")
         labels = {
             "timestamp": _("Date and time (YYYY-MM-DD HH:mm:ss) "),
             "supplied_water_volume": _("Volume of applied irrigation water (m³)"),
