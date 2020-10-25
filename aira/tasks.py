@@ -50,7 +50,11 @@ def _request_the_things_network_digest(since="1d"):
     response = requests.get(url, headers=headers)
     response.raise_for_status()
     filtered_data = [
-        {"sensor_frequency": d["SensorFrequency"], "timestamp": d["time"]}
+        {
+            "sensor_frequency": d["SensorFrequency"],
+            "timestamp": d["time"],
+            "device_id": d["device_id"],
+        }
         for d in response.json()
         if d["SensorFrequency"] is not None
     ]
