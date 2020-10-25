@@ -8,7 +8,7 @@ from captcha.fields import CaptchaField
 from geowidgets import LatLonField
 from registration.forms import RegistrationFormTermsOfService
 
-from .models import Agrifield, AppliedIrrigation, Profile, LoRA_ARTAFlowmeter
+from .models import Agrifield, AppliedIrrigation, LoRA_ARTAFlowmeter, Profile
 
 
 class ProfileForm(forms.ModelForm):

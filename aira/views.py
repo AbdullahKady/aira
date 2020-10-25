@@ -21,13 +21,14 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateView, View
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
+
 import pandas as pd
 
 from .forms import (
     AgrifieldForm,
     AppliedIrrigationForm,
-    ProfileForm,
     LoRA_ARTAFlowmeterForm,
+    ProfileForm,
 )
 from .models import Agrifield, AppliedIrrigation, Profile
 

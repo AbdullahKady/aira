@@ -1,7 +1,9 @@
 import logging
-import requests
-from django.core.cache import cache
+
 from django.conf import settings
+from django.core.cache import cache
+
+import requests
 
 from aira.celery import app
 from aira.models import LoRA_ARTAFlowmeter

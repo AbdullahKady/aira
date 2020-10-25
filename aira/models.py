@@ -1,9 +1,9 @@
 import csv
 import datetime as dt
-from decimal import Decimal
 import math
 import os
 from collections import OrderedDict
+from decimal import Decimal
 from glob import iglob
 from io import StringIO
 
