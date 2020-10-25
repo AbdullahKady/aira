@@ -469,7 +469,7 @@ class LoRA_ARTAFlowmeterTestCase(TestCase):
 
     def test_points_created_as_automated_reporting(self):
         data_points = [
-            {"SensorFrequency": 10, "time": "2020-10-12T00:00:00.000000000Z"}
+            {"sensor_frequency": 10, "timestamp": "2020-10-12T00:00:00.000000000Z"}
         ]
         self.assertEqual(self.flowmeter.agrifield.appliedirrigation_set.count(), 0)
         self.flowmeter.create_irrigations_in_bulk(data_points)
@@ -491,11 +491,11 @@ class LoRA_ARTAFlowmeterTestCase(TestCase):
     def test_duplicate_points_are_skipped(self):
         # Ensure that if time is the same, but the volume is different, it will pass.
         data_points = [
-            {"SensorFrequency": 10, "time": "2020-10-10T00:00:00.000000000Z"},
-            {"SensorFrequency": 12, "time": "2020-10-10T00:15:00.000000000Z"},
-            {"SensorFrequency": 15, "time": "2020-10-10T00:30:00.000000000Z"},
-            {"SensorFrequency": 15, "time": "2020-10-10T00:30:00.000000000Z"},
-            {"SensorFrequency": 16, "time": "2020-10-10T00:30:00.000000000Z"},
+            {"sensor_frequency": 10, "timestamp": "2020-10-10T00:00:00.000000000Z"},
+            {"sensor_frequency": 12, "timestamp": "2020-10-10T00:15:00.000000000Z"},
+            {"sensor_frequency": 15, "timestamp": "2020-10-10T00:30:00.000000000Z"},
+            {"sensor_frequency": 15, "timestamp": "2020-10-10T00:30:00.000000000Z"},
+            {"sensor_frequency": 16, "timestamp": "2020-10-10T00:30:00.000000000Z"},
         ]
 
         self.assertEqual(self.flowmeter.agrifield.appliedirrigation_set.count(), 0)
