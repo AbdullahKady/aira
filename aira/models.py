@@ -577,13 +577,16 @@ class LoRA_ARTAFlowmeter(TelemetricFlowmeter):
         validators=[MinValueValidator(1), MaxValueValidator(100)],
         help_text=_("Percentage of water that corresponds to the flowmeter (%)"),
     )
-    conversion_rate = models.DecimalField(max_digits=5, decimal_places=2, default=6.8)
+    conversion_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal(6.8)
+    )
     report_frequency_in_minutes = models.PositiveSmallIntegerField(default=5)
 
-    def _calculate_water_volume(self, point):
+    def _calculate_water_volume(self, sensor_frequency):
         return (
-            Decimal((1 / self.flowmeter_water_percentage))
-            * (self.report_frequency_in_minutes * point["SensorFrequency"])
+            Decimal(self.flowmeter_water_percentage / 100)
+            * self.report_frequency_in_minutes
+            * sensor_frequency
             / self.conversion_rate
         )
 
@@ -592,7 +595,9 @@ class LoRA_ARTAFlowmeter(TelemetricFlowmeter):
             {
                 "is_flowmeter_reported": True,
                 "irrigation_type": "VOLUME_OF_WATER",
-                "supplied_water_volume": self._calculate_water_volume(point),
+                "supplied_water_volume": self._calculate_water_volume(
+                    point["SensorFrequency"]
+                ),
                 "agrifield_id": self.agrifield_id,
                 "timestamp": point["time"],
             }
