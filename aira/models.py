@@ -593,7 +593,7 @@ class LoRA_ARTAFlowmeter(TelemetricFlowmeter):
     def create_irrigations_in_bulk(self, data_points):
         kwargs_list = [
             {
-                "is_flowmeter_reported": True,
+                "is_automatically_reported": True,
                 "irrigation_type": "VOLUME_OF_WATER",
                 "supplied_water_volume": self._calculate_water_volume(
                     point["SensorFrequency"]
