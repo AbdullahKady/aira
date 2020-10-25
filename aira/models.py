@@ -578,7 +578,7 @@ class LoRA_ARTAFlowmeter(TelemetricFlowmeter):
         help_text=_("Percentage of water that corresponds to the flowmeter (%)"),
     )
     conversion_rate = models.DecimalField(
-        max_digits=5, decimal_places=2, default=Decimal(6.8)
+        max_digits=5, decimal_places=2, default=Decimal("6.8")
     )
     report_frequency_in_minutes = models.PositiveSmallIntegerField(default=5)
 
