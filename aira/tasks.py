@@ -1,3 +1,4 @@
+import logging
 import requests
 from django.core.cache import cache
 from django.conf import settings
@@ -5,6 +6,8 @@ from django.conf import settings
 from aira.celery import app
 from aira.models import LoRA_ARTAFlowmeter
 from aira.utils import group_by_key_value
+
+logger = logging.getLogger(__name__)
 
 
 @app.task
@@ -32,7 +35,13 @@ def _add_irrigations_for_LoRA_ARTA_flowmeters():
             flowmeter = LoRA_ARTAFlowmeter.objects.get(device_id=device_id)
             flowmeter.create_irrigations_in_bulk(data_points)
         except LoRA_ARTAFlowmeter.DoesNotExist:
-            continue  # TODO: Log to an error handler?
+            logger.warn(
+                (
+                    "Got a non-existing flowmeter through TTN."
+                    "Flowmeter ID in retrieved from TTN: %s"
+                ),
+                device_id,
+            )
 
 
 def _request_the_things_network_digest(since="1d"):
