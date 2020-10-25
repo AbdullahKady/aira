@@ -596,10 +596,10 @@ class LoRA_ARTAFlowmeter(TelemetricFlowmeter):
                 "is_automatically_reported": True,
                 "irrigation_type": "VOLUME_OF_WATER",
                 "supplied_water_volume": self._calculate_water_volume(
-                    point["SensorFrequency"]
+                    point["sensor_frequency"]
                 ),
                 "agrifield_id": self.agrifield_id,
-                "timestamp": point["time"],
+                "timestamp": point["timestamp"],
             }
             for point in data_points
         ]

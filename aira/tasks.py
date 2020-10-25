@@ -49,5 +49,9 @@ def _request_the_things_network_digest(since="1d"):
     url = f"{settings.THE_THINGS_NETWORK_QUERY_URL}?last={since}"
     response = requests.get(url, headers=headers)
     response.raise_for_status()
-    filtered_data = [d for d in response.json() if d["SensorFrequency"] is not None]
+    filtered_data = [
+        {"sensor_frequency": d["SensorFrequency"], "timestamp": d["time"]}
+        for d in response.json()
+        if d["SensorFrequency"] is not None
+    ]
     return group_by_key_value(filtered_data, "device_id")
